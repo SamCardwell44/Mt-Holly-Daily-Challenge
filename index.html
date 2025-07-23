@@ -179,15 +179,16 @@
     
     .cell.lobby {
         background: #003300;
-        border: 2px solid #00C07A;
-        box-shadow: 0 0 10px #00C07A;
+        border: 2px solid  #00C07A;
+        box-shadow: 0 0 10px  #00C07A;
+        color: #d1d1d1;
     }
     
     .cell.goal {
-        background: #330033;
-        border: 2px solid #00C07A;
-        box-shadow: 0 0 10px #00C07A;
-        color: #00C07A;
+        background: #d1d1d1;
+        border: 2px solid #d1d1d1;
+        box-shadow: 0 0 10px #d1d1d1;
+        color: #000000;
     }
     
     .cell.completed {
@@ -367,9 +368,247 @@
         border-color: #aa00ff;
         color: #cc77ff;
     }
+
+    .help-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #122026;
+        color: #00C07A;
+        border: 2px solid #00C07A;
+        padding: 10px;
+        border-radius: 0;
+        cursor: pointer;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+
+    .help-btn:hover {
+        background: #00C07A;
+        color: #000;
+        box-shadow: 0 0 10px #00C07A;
+    }
+
+    .help-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1002;
+    }
+
+    .help-content {
+        background: #0a0a0a;
+        border: 3px solid #00C07A;
+        padding: 30px;
+        border-radius: 0;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 0 30px #00C07A;
+        font-family: 'Courier New', monospace;
+        color: #00C07A;
+    }
+
+    .help-header {
+        text-align: center;
+        border-bottom: 2px solid #00C07A;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .help-title {
+        font-size: 1.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 5px #00C07A;
+        margin: 0;
+    }
+
+    .help-subtitle {
+        font-size: 0.9em;
+        margin: 5px 0 0 0;
+        color: #888;
+    }
+
+    .help-section {
+        margin: 20px 0;
+        border-left: 3px solid #00C07A;
+        padding-left: 15px;
+    }
+
+    .help-section h3 {
+        color: #00C07A;
+        text-transform: uppercase;
+        font-size: 1.1em;
+        margin: 0 0 10px 0;
+        text-shadow: 0 0 3px #00C07A;
+    }
+
+    .help-section p {
+        margin: 8px 0;
+        line-height: 1.4;
+    }
+
+    .help-modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin: 15px 0;
+    }
+
+    .help-mode {
+        background: #1a1a1a;
+        border: 2px solid #666;
+        padding: 10px;
+        border-radius: 0;
+    }
+
+    .help-mode-title {
+        color: #00C07A;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .help-resources {
+        background: #1a1a1a;
+        border: 2px solid #00C07A;
+        padding: 15px;
+        margin: 15px 0;
+    }
+
+    .help-resource {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+    }
+
+    .help-resource-icon {
+        font-size: 1.2em;
+        margin-right: 10px;
+        width: 25px;
+    }
+
+    .help-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #00C07A;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+    }
+
+    .help-close:hover {
+        color: #fff;
+        text-shadow: 0 0 5px #00C07A;
+    }
+
+    .help-scoring {
+        background: #001100;
+        border: 2px solid #00C07A;
+        padding: 15px;
+        margin: 15px 0;
+    }
+
+    @media (max-width: 768px) {
+        .help-modes {
+            grid-template-columns: 1fr;
+        }
+        
+        .help-content {
+            padding: 20px;
+            margin: 10px;
+        }
+    }
 </style>
 </head>
 <body>
+    <button class="help-btn" id="help-btn">📖</button>
+
+<div class="help-modal" id="help-modal">
+    <div class="help-content">
+        <button class="help-close" id="help-close">×</button>
+        
+        <div class="help-header">
+            <h1 class="help-title">Drafting Strategy Vol 6</h1>
+            <p class="help-subtitle">DRAFT MANUSCRIPT - TERMINAL ACCESS ONLY</p>
+        </div>
+
+        <div class="help-section">
+            <h3>Game Modes</h3>
+            <div class="help-modes">
+                <div class="help-mode">
+                    <div class="help-mode-title">EXPEDITION</div>
+                    <p>Single-day completion. Complete the path in one session.</p>
+                </div>
+                <div class="help-mode">
+                    <div class="help-mode-title">CAMPAIGN</div>
+                    <p>Multi-day completion. Score penalty for additional days.</p>
+                </div>
+            </div>
+            
+            <div class="help-modes">
+                <div class="help-mode">
+                    <div class="help-mode-title">STANDARD</div>
+                    <p>All challenges visible from start. Plan your route carefully.</p>
+                </div>
+                <div class="help-mode">
+                    <div class="help-mode-title">DRAFT</div>
+                    <p>Draft challenges as you explore. Adjacent completed rooms only.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>Resources</h3>
+            <div class="help-resources">
+                <div class="help-resource">
+                    <span class="help-resource-icon">🔑</span>
+                    <span><strong>KEYS:</strong> Unlock locked squares. Essential for blocked paths.</span>
+                </div>
+                <div class="help-resource">
+                    <span class="help-resource-icon">💎</span>
+                    <span><strong>GEMS:</strong> Reduce number requirements by 30% (minimum 1). Use on high-value challenges.</span>
+                </div>
+                <div class="help-resource">
+                    <span class="help-resource-icon">🎲</span>
+                    <span><strong>DICE:</strong> Reroll challenge. Select color to influence new challenge type.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>Objective</h3>
+            <p>Create a path from the lobby to the antechamber while maximizing your score.</p>
+            
+            <div class="help-scoring">
+                <h3>Scoring System</h3>
+                <p><strong>Base Score:</strong> +1 point per completed room</p>
+                <p><strong>Path Bonus:</strong> +10 points for connecting the lobby and the antechamber</p>
+                <p><strong>Campaign Mode Penalty:</strong> -1 point per day beyond the first</p>
+                <p><strong>Final Score = Completed Rooms + Path Bonus - Day Penalty</strong></p>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h3>Draft Strategy Notes</h3>
+            <p>• Use gems to make challenges easier. It will always go down by at least 1, so you can make some challenges really easy.</p>
+            <p>• Use dice to reroll challenges you cannot complete</p>
+            <p>• Color selection with dice can target specific challenge types</p>
+            <p>• Since campaign mode deducts days taken, sometimes speed can be better than perfection</p>
+        </div>
+    </div>
+</div>
     <div class="container">
         <h1>🏰 Mt Holly. Daily Challenge</h1>
         
@@ -979,10 +1218,10 @@
                 
                 if (cell.isLobby) {
                     cellElement.classList.add('lobby');
-                    cellElement.innerHTML = '<div>🏰</div><div style="font-size:8px;">START</div>';
+                    cellElement.innerHTML = '<div></div><div style="font-size:8px;">LOBBY</div>';
                 } else if (cell.isGoal) {
                     cellElement.classList.add('goal');
-                    cellElement.innerHTML = '<div>👑</div><div style="font-size:8px;">GOAL</div>';
+                    cellElement.innerHTML = '<div></div><div style="font-size:8px;">ANTECHAMBER</div>';
                 } else if (cell.isLocked) {
                     cellElement.classList.add('locked');
                     cellElement.innerHTML = '<div>🔒</div>';
@@ -1693,6 +1932,22 @@
                     initGame();
                 }
             });
+
+            // Help modal
+            document.getElementById('help-btn').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'flex';
+            });
+
+            document.getElementById('help-close').addEventListener('click', () => {
+                document.getElementById('help-modal').style.display = 'none';
+            });
+
+            // Close help modal when clicking outside
+            document.getElementById('help-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'help-modal') {
+                    document.getElementById('help-modal').style.display = 'none';
+                }
+            });
         
 
             // Initialize first game
@@ -1713,10 +1968,6 @@
             }
         }
 
-        //rename to Daily Prince
-        //Make help menu in top corner book emoji, named drafting strategy vol 6. Explains the rules specific to the mode you are on.
-        //Rename modes: Standard the same daily -> Single-run  multi -> Campaign   Mt Holly Draft -> Draft
-        // SO it would be like Standard Expedition, Standard Campaign, Draft Expedition, Draft Campaign
     </script>
 </body>
 </html>

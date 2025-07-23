@@ -35,6 +35,28 @@
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
+
+        .game-controls .second-row {
+            width: 100%;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .score-display {
+                order: 2;
+                margin-top: 15px;
+            }
+            
+            .second-row {
+                order: 3;
+                margin-top: 0 !important;
+            }
+        }
         
         .mode-select, .resources {
             display: flex;
@@ -248,35 +270,51 @@
         
         <div class="game-controls">
             <div class="mode-select">
-                <button id="daily-std" class="mode-btn active">Daily Standard</button>
-                <button id="weekly-std" class="mode-btn">Weekly Standard</button>
-                <button id="daily-draft" class="mode-btn">Mt Holly Daily</button>
-                <button id="weekly-draft" class="mode-btn">Mt Holly Weekly</button>
+                <button id="daily-std" class="mode-btn active">One Day Standard</button>
+                <button id="weekly-std" class="mode-btn">Multi Standard</button>
+                <button id="daily-draft" class="mode-btn">One Day Mt Holly Draft</button>
+                <button id="weekly-draft" class="mode-btn">Multi Mt Holly Draft</button>
             </div>
             
-            <div class="resources">
-                <div class="resource-item" id="gems-btn">
-                    <span>💎</span>
-                    <span id="gem-count">0</span>
+            <div class="second-row" style="display: flex; gap: 20px; margin-top: 15px; justify-content: center; align-items: center;">
+                <div class="resources">
+                    <div class="resource-item" id="gems-btn">
+                        <span>💎</span>
+                        <span id="gem-count">0</span>
+                    </div>
+                    <div class="resource-item" id="keys-btn">
+                        <span>🔑</span>
+                        <span id="key-count">0</span>
+                    </div>
+                    <div class="resource-item" id="dice-btn">
+                        <span>🎲</span>
+                        <span id="dice-count">0</span>
+                    </div>
                 </div>
-                <div class="resource-item" id="keys-btn">
-                    <span>🔑</span>
-                    <span id="key-count">0</span>
+                
+                <div class="score-display" style="display: flex; gap: 20px; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
+                        <span>Score: </span><span id="score-display">0</span>
+                    </div>
+                    <div id="days-control" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; display: none;">
+                        <label for="days-counter">Days: </label>
+                        <input type="number" id="days-counter" value="1" min="1" max="999" style="width: 60px; padding: 5px; border: none; border-radius: 5px; background: #444; color: white;">
+                    </div>
                 </div>
-                <div class="resource-item" id="dice-btn">
-                    <span>🎲</span>
-                    <span id="dice-count">0</span>
-                </div>
+                
+                <button id="new-game-btn">Reset</button>
             </div>
-            
-            <button id="new-game-btn">New Game</button>
         </div>
         
         <div class="grid-container">
             <div class="grid" id="game-grid"></div>
         </div>
     </div>
-    
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="share-btn" style="background: #2196F3; padding: 12px 24px; font-size: 16px;">Share Result</button>
+    </div>
+
     <div class="notification" id="notification"></div>
     
     <div class="modal" id="completion-modal">
@@ -308,59 +346,130 @@
             completedPath: [],
             isComplete: false,
             exploredCells: new Set(),
-            seed: ''
+            seed: '',
+            usedChallenges: new Set()
         };
 
         // Challenge database
         const challenges = [
-            // Easy challenges (ranks 1-3)
-            { text: "Draft {1:4} {roomtype} rooms", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'daily' },
-            { text: "Have {1:2} keys at once", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'daily' },
-            { text: "Have {1:2} gems at once", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'daily' },
-            { text: "Pet a dog", ranks: [1,2,3], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
-            { text: "Eat {1:3} {foodtype}", ranks: [1,2,3], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
-            { text: "Open {1:3} trunks", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'daily' },
-            { text: "Dig {1:2} times", ranks: [1,2,3], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
-            { text: "Pull {1:2} levers", ranks: [1,2,3], columns: [], color: 'blue', difficulty: 'easy', type: 'daily' },
-            { text: "Draft {common_room}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
-            { text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'daily' },
+            // Easy challenges Daily
+            { id: 'draft_roomtype_1', text: "Draft {1:4} {roomtype} rooms", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'keys_at_once_1', text: "Have {3:8} keys at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
+            { id: 'gems_at_once_1', text: "Have {3:6} gems at once", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
+            { id: 'coins_at_once_1', text: "Have {20:50} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'daily' },
+            { id: 'eat_food_1', text: "Eat {1:3} {foodtype}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
+            { id: 'open_trunks_1', text: "Open {1:3} trunks", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
+            { id: 'dig_times_1', text: "Dig {1:2} times", ranks: [1,2,3], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
+            { id: 'draft_common_1', text: "Draft {common_room}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_common_2', text: "Draft {common_room}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_common_3', text: "Draft {common_room}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_common_4', text: "Draft {common_room}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_rare_1', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_rare_2', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_rare_3', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_rare_4', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'inventory_items_1', text: "Have {3:5} inventory items", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
+            { id: 'use_terminal_1', text: "Use a terminal", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
+            { id: 'buy_shop', text: "Buy something from a shop room", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+
             
-            // Medium challenges (ranks 3-5)
-            { text: "Have {3:5} inventory items", ranks: [3,4,5], columns: [], colour: '', difficulty: 'medium', type: 'daily' },
-            { text: "Complete dartboard puzzle", ranks: [3,4,5], columns: [], colour: 'orange', difficulty: 'medium', type: 'daily' },
-            { text: "Use an upgrade disk", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
-            { text: "Open a safe", ranks: [3,4,5], columns: [], color: 'red', difficulty: 'medium', type: 'daily' },
-            { text: "Buy an item from showroom", ranks: [3,4,5], columns: [], color: 'yellow', difficulty: 'medium', type: 'daily' },
-            { text: "Use the workshop", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
-            { text: "Observe a constellation", ranks: [3,4,5], columns: [], color: 'green', difficulty: 'medium', type: 'daily' },
-            { text: "Ride an elevator", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
-            { text: "Find a microchip", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
-            { text: "Draft both Utility Closet and Garage in one run", ranks: [6,7], columns: [], color: "", difficulty: "hard", type: "multi" },
+            // Medium challenges Daily
+            { id: 'parlor_puzzle_1', text: "Complete parlor puzzle", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
+            { id: 'dartboard_puzzle_1', text: "Complete dartboard puzzle", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
+            { id: 'upgrade_disk_1', text: "Use an upgrade disk", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
+            { id: 'open_safe_1', text: "Open a safe", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'pet_dog_1', text: "Pet a dog {1:6} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'craft_item_1', text: "Craft an item", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
+            { id: 'observe_constellation_1', text: "Observe a constellation", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
+            { id: 'draft_both_common_1', text: "Draft both {common_room} and {common_room} at the same time", ranks: [6,7], columns: [], color: "", difficulty: "medium", type: "none" },
+            { id: 'special_key_1', text: "Use a special key", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'lab_experiment_1', text: "Trigger a laboratory experiment", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none' },
+            { id: 'read_books_1', text: "Read {2:4} different books", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'find_memos_1', text: "Find {2:4} different memos", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'end_in_roomtype_1', text: "End the day in a {roomtype} room", ranks: [3,4,5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'reroll_choices_1', text: "Reroll room choices {2:4} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'over_60_steps_1', text: "Have over 60 steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
+            { id: 'end_with_steps_1', text: "End the day with {20:40}+ steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
+            { id: 'draft_dead_ends_1', text: "Draft {2:5} dead ends", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'draft_lavatory_1', text: "Draft the lavatory", ranks: [3,4,5,6,7], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
+            { id: 'draft_furnace_1', text: "Draft the furnace", ranks: [3,4,5,6,7], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
+            { id: 'find_item_1', text: "Find a {item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'find_item_2', text: "Find a {item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'pull_levers_1', text: "Pull {1:2} levers", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'buy_multi_shop', text: "Buy {2:5} things from shop rooms", ranks: [3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
             
-            // Hard challenges (ranks 5-7)
-            { text: "Reach the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Reach the basement", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Unlock blackthorn", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Unlock gem mines", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Complete parlor puzzle", ranks: [5,6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'daily' },
-            { text: "Complete laboratory experiment", ranks: [5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'daily' },
-            { text: "Use a major key", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'daily' },
-            { text: "Draft architect house", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Draft both wing halls", ranks: [6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'multi' },
-            { text: "See Alzara vision", ranks: [6,7], columns: [], color: 'red', difficulty: 'hard', type: 'daily' },
-            { text: "Look through telescope", ranks: [5,6,7], columns: [], color: 'green', difficulty: 'hard', type: 'daily' },
-            { text: "Give {5:10} coins to chapel", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
-            { text: "Unlock West Gate Path permanent add‑on", ranks: [6,7], columns: [], color: "", difficulty: "hard", type: "multi" },
+            // Hard challenges Daily
+            { id: 'enter_antechamber_1', text: "Enter the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none'},
+            { id: 'rotate_room_1', text: "Rotate a room", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'lab_experiment_multi_1', text: "Trigger a laboratory experiment {2:5} times", ranks: [5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none'},
+            { id: 'both_wing_halls_1', text: "Have both wing halls at once", ranks: [6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'none' },
+            { id: 'speak_alzara_1', text: "Speak with Alzara", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'coins_chapel_1', text: "Give {3:10} coins to chapel", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'rare_next_common_1', text: "Draft {rare_room} next to {common_room}", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'buried_treasure_1', text: "Find buried treasure", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'allowance_token_1', text: "Find an allowance token", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'end_rare_room_1', text: "End the day in a {rare_room}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'open_garage_1', text: "Open the garage", ranks: [5,6,7], columns: [1], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'light_dark_room_1', text: "Light the dark room", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
+
+
+            //Easy challenges multi
+            { id: 'unlock_gem_mines_1', text: "Unlock gem mines", ranks: [3,4,5,6], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'freeze_accounts_1', text: "Freeze your accounts", ranks: [3,4,5,6], columns: [], color: 'blue', difficulty: 'easy', type: 'multi' },
+            { id: 'draft_chess_pieces_1', text: "Draft 1 of every chess piece", ranks: [4,5,6,7], columns: [1,5], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'great_hall_doors_1', text: "Open all the doors in the great hall", ranks: [4,5,6,7], columns: [], color: 'orange', difficulty: 'easy', type: 'multi' },
+            { id: 'adjust_rarity_1', text: "Adjust a room's rarity", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'over_100_steps_1', text: "Have over 100 steps", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'parlor_puzzles_multi_1', text: "Complete {2:5} parlor puzzles", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'dartboard_puzzles_multi_1', text: "Complete {2:5} dartboard puzzles", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'same_room_twice_1', text: "Have 2 of the same room at once", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'two_items_once_1', text: "Have {item} and {item} at the same time", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'keys_at_once_2', text: "Have {8:20} keys at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'gems_at_once_2', text: "Have {10:20} gems at once", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
+            { id: 'coins_at_once_2', text: "Have {50:120} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'multi' },
+            { id: 'eat_food_2', text: "Eat {5:10} {foodtype}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'open_trunks_2', text: "Open {5:10} trunks", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'dig_times_2', text: "Dig {5:10} times", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
+            
+            
+            //Medium challenges multi
+            { id: 'reach_basement_1', text: "Reach the basement", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi'},
+            { id: 'time_safe_1', text: "Open a time safe", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'hard', type: 'multi'},
+            { id: 'light_candle_1', text: "Light a candle", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'blackthorn_grotto_1', text: "Open blackthorn grotto", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
+            { id: 'find_microchip_1', text: "Find a microchip", ranks: [3,4,5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'buy_showroom_1', text: "Buy an item from the showroom", ranks: [3,4,5,6,7], columns: [1,5], color: 'yellow', difficulty: 'medium', type: 'multi' },
+            { id: 'raise_allowance_1', text: "Raise your allowance to {4:10}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
+            { id: 'break_brick_wall_1', text: "Break a brick wall", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'add_new_rooms_1', text: "Add {1:3} new rooms to your draft pool", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'get_crown_1', text: "Get a crown", ranks: [], columns: [6,7], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'get_crafted_item_1', text: "Get a {crafted_item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'inventory_items_2', text: "Have {6:10} inventory items", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'over_60_steps_1', text: "Have over 100 steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'end_with_steps_1', text: "End the day with {50:80}+ steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+
+            //Hard challenges multi
+            { id: 'west_gate_path_1', text: "Unlock West Gate Path", ranks: [6,7], columns: [1], color: '', difficulty: "hard", type: "multi" },
+            { id: 'drain_reservoir_1', text: "Drain the reservoir", ranks: [6,7], columns: [], color: 'blue', difficulty: "hard", type: "multi" },
+            { id: 'ride_elevator_1', text: "Ride an elevator", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
+            { id: 'win_roulette_1', text: "Win at roulette", ranks: [5,6,7], columns: [1,5], color: 'yellow', difficulty: 'hard', type: 'multi' },
+            { id: 'fill_house_1', text: "Fill every square in the house", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
+            { id: 'sanctum_key_1', text: "Find a sanctum key", ranks: [6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
+            
         ];
 
         const commonRooms = [
-            "drawing room", "parlor",
-            "dining room",  "pantry", "hallway", "den",
-            "guest room", "bedroom"
+            "drawing room", "parlor", "spare room", "billiard room", "closet", "storeroom", "nook",
+            "dining room",  "pantry", "hallway", "den", "wine cellar", "pantry", "utility closet",
+            "guest room", "bedroom", "security", "observatory", "bedroom", "boudoir", "west wing hall", "east wing hall",
+            "corridor", "passageway", "courtyard", "kitchen", "gymnasium", "commissary", "aquarium"
         ];
         
         const rareRooms = [
-            "observatory", "laboratory", "workshop", "vault", "secret passage"
+             "laboratory", "workshop", "vault", "secret passage", "locksmith", "showroom", "laundry room",
+             "greenhouse", "cloister", "veranda", "patio", "foyer", "great hall",
+             "hr ladyship's chamber", "master bedroom", "mail room", "coat check", "pump room", "boiler", "pool room",
+             "drawing room", "library", "rumpus room", "vault", "trophy room", "attic", "gallery"
         ];
 
         const roomTypes = [
@@ -372,10 +481,49 @@
             "apple", "turnip", "orange", "banana"
 
         ];
+
+        const items = [
+            "compass", "magnifying glass", "coin purse", "rabbit's foot", "metal detector", "shovel" , "sledgehammer", "broken lever",
+            "lockpick", "battery pack", "watering can", "keycard", "secret garden key", "car keys", "silver key", "sleeping mask", "salt shaker",
+            "wind-up key", "running shoes"
+
+        ];
+
+        const craftedItems= [
+            "lucky  purse", "powered electromagnet", "Dowsing rod", "power hammer", "pick sound amplifier", "detector shovel", "jack hammer", "burning glass"
+
+        ];
         
 
         // Colors for grid squares
         const colors = ['yellow', 'blue', 'green', 'red', 'orange', 'purple'];
+
+
+        // Define incompatible challenge groups
+        const incompatibleGroups = [
+            ['over_100_steps_1', 'over_60_steps_1'], // Steps challenges
+            ['parlor_puzzle_1', 'parlor_puzzles_multi_1'], // Single vs multiple parlor
+            ['dartboard_puzzle_1', 'dartboard_puzzles_multi_1'], // Single vs multiple dartboard
+            ['lab_experiment_1', 'lab_experiment_multi_1'], // Single vs multiple lab experiments
+            ['end_in_roomtype_1', 'end_rare_room_1'], // Different end location requirements
+            ['buy_shop', 'buy_multi_shop'], //Multiple shop room purchases
+            ['keys_at_once_1', 'keys_at_once_2'], //multiple keys at once requirements
+            ['gems_at_once_1', 'gems_at_once_2'], //multiple gems at once requirements
+            ['coins_at_once_1', 'coins_at_once_2'] //multiple coins at once requirements
+        ];
+
+        function isCompatibleChallenge(challengeId, usedChallenges) {
+            for (const group of incompatibleGroups) {
+                if (group.includes(challengeId)) {
+                    // Check if any other challenge in this group is already used
+                    const hasConflict = group.some(id => id !== challengeId && usedChallenges.has(id));
+                    if (hasConflict) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
 
         // Seeded random number generator
         class SeededRandom {
@@ -420,44 +568,50 @@
 
         // Process challenge text with ranges
         function processChallenge(challenge, rng) {
-    let text = challenge.text;
-    
-    // Process number ranges first
-    const rangeMatch = text.match(/\{(\d+):(\d+)\}/);
-    if (rangeMatch) {
-        const min = parseInt(rangeMatch[1]);
-        const max = parseInt(rangeMatch[2]);
-        const value = rng.nextInt(min, max);
-        text = text.replace(rangeMatch[0], value);
-    }
-    
-    // Process room selections
-    const commonRoomMatch = text.match(/\{common_room\}/);
-    if (commonRoomMatch) {
-        const room = commonRooms[rng.nextInt(0, commonRooms.length - 1)];
-        text = text.replace(commonRoomMatch[0], room);
-    }
-    
-    const rareRoomMatch = text.match(/\{rare_room\}/);
-    if (rareRoomMatch) {
-        const room = rareRooms[rng.nextInt(0, rareRooms.length - 1)];
-        text = text.replace(rareRoomMatch[0], room);
-    }
+            let text = challenge.text;
+            
+            // Process number ranges first
+            const rangeMatch = text.match(/\{(\d+):(\d+)\}/);
+            if (rangeMatch) {
+                const min = parseInt(rangeMatch[1]);
+                const max = parseInt(rangeMatch[2]);
+                const value = rng.nextInt(min, max);
+                text = text.replace(rangeMatch[0], value);
+            }
+            
+            // Process room selections - use while loops to handle multiple instances
+            while (text.includes('{common_room}')) {
+                const room = commonRooms[rng.nextInt(0, commonRooms.length - 1)];
+                text = text.replace('{common_room}', room);
+            }
+            
+            while (text.includes('{rare_room}')) {
+                const room = rareRooms[rng.nextInt(0, rareRooms.length - 1)];
+                text = text.replace('{rare_room}', room);
+            }
 
-    const roomTypeMatch= text.match(/\{roomtype\}/);
-    if (roomTypeMatch) {
-        const room = roomTypes[rng.nextInt(0, roomTypes.length - 1)];
-        text = text.replace(roomTypeMatch[0], room);
-    }
+            while (text.includes('{roomtype}')) {
+                const room = roomTypes[rng.nextInt(0, roomTypes.length - 1)];
+                text = text.replace('{roomtype}', room);
+            }
 
-    const foodTypeMatch= text.match(/\{foodtype\}/);
-    if (foodTypeMatch) {
-        const room = foodTypes[rng.nextInt(0, foodTypes.length - 1)];
-        text = text.replace(foodTypeMatch[0], room);
-    }
-    
-    return { ...challenge, text };
-}
+            while (text.includes('{foodtype}')) {
+                const room = foodTypes[rng.nextInt(0, foodTypes.length - 1)];
+                text = text.replace('{foodtype}', room);
+            }
+
+            while (text.includes('{item}')) {
+                const item = items[rng.nextInt(0, items.length - 1)];
+                text = text.replace('{item}', item);
+            }
+
+            while (text.includes('{crafted_item}')) {
+                const item = craftedItems[rng.nextInt(0, craftedItems.length - 1)];
+                text = text.replace('{crafted_item}', item);
+            }
+            
+            return { ...challenge, text };
+        }
 
         // Generate grid
         function generateGrid() {
@@ -512,7 +666,8 @@
                         
                         // Add challenges if not draft mode or if explored
                         if (!isDraft || cell.isExplored) {
-                            cell.challenge = selectChallenge(row + 1, col + 1, cell.color, rng);
+                            // Pass correct rank (1-7) and column (1-5) values
+                            cell.challenge = selectChallenge(7 - row, col + 1, cell.color, rng);
                         }
                     }
                     
@@ -528,21 +683,88 @@
         function selectChallenge(rank, column, color, rng) {
             const isMultiMode = gameState.mode.includes('weekly');
             
+            // Enhanced debug logging - start of function
+            console.log(`\n=== SELECTING CHALLENGE ===`);
+            console.log(`Position: Rank ${rank}, Column ${column}, Color: ${color || 'none'}`);
+            console.log(`Mode: ${gameState.mode} (isMulti: ${isMultiMode})`);
+            
+            // Priority 1: Row and column requirements must be correct
             let validChallenges = challenges.filter(c => {
                 const rankValid = c.ranks.length === 0 || c.ranks.includes(rank);
                 const columnValid = c.columns.length === 0 || c.columns.includes(column);
                 const colorValid = !color || !c.color || c.color === color;
-                const typeValid = !isMultiMode || c.type === 'multi' || c.type === 'daily';
-                
+                const typeValid = isMultiMode ? 
+                    (c.type === 'multi' || c.type === 'none') : 
+                    (c.type === 'daily' || c.type === 'none');
+                const hasRankConstraint = c.ranks.length > 0;
+                const hasColumnConstraint = c.columns.length > 0;
+
+                // If a challenge has specific rank/column requirements, it must meet ALL of them
+                if (hasRankConstraint && !c.ranks.includes(rank)) return false;
+                if (hasColumnConstraint && !c.columns.includes(column)) return false;
+
                 return rankValid && columnValid && colorValid && typeValid;
             });
-            
+
+            console.log(`Found ${validChallenges.length} valid challenges after initial filtering`);
+                        
             if (validChallenges.length === 0) {
-                validChallenges = challenges.filter(c => c.type === 'daily');
+                console.warn('❌ No valid challenges found - using fallback');
+                return { id: 'fallback', text: 'Complete this challenge', difficulty: 'easy', type: 'daily' };
+            }
+
+            // Priority 2: Filter out incompatible challenges
+            let compatibleChallenges = validChallenges.filter(c => 
+                isCompatibleChallenge(c.id, gameState.usedChallenges)
+            );
+
+            console.log(`${compatibleChallenges.length} challenges remain after compatibility filtering`);
+            if (compatibleChallenges.length < validChallenges.length) {
+                const filtered = validChallenges.filter(c => !isCompatibleChallenge(c.id, gameState.usedChallenges));
+                console.log(`Filtered out incompatible: [${filtered.map(c => c.id).join(', ')}]`);
+            }
+
+            // Priority 3: Try to avoid duplicates
+            let unusedChallenges = compatibleChallenges.filter(c => 
+                !gameState.usedChallenges.has(c.id)
+            );
+
+            console.log(`${unusedChallenges.length} unused challenges available`);
+            if (unusedChallenges.length < compatibleChallenges.length) {
+                const used = compatibleChallenges.filter(c => gameState.usedChallenges.has(c.id));
+                console.log(`Already used: [${used.map(c => c.id).join(', ')}]`);
+            }
+
+            // Use the most restrictive set available
+            let finalChallenges;
+            if (unusedChallenges.length > 0) {
+                finalChallenges = unusedChallenges;
+                console.log(`✓ Using ${finalChallenges.length} unused challenges`);
+            } else if (compatibleChallenges.length > 0) {
+                finalChallenges = compatibleChallenges;
+                console.log(`⚠ Using ${finalChallenges.length} compatible challenges (allowing duplicates)`);
+            } else {
+                finalChallenges = validChallenges;
+                console.log(`⚠ Using ${finalChallenges.length} valid challenges (ignoring compatibility)`);
             }
             
-            const challenge = validChallenges[rng.nextInt(0, validChallenges.length - 1)];
-            return processChallenge(challenge, rng);
+            const challengeIndex = rng.nextInt(0, finalChallenges.length - 1);
+            const challenge = finalChallenges[challengeIndex];
+            const processedChallenge = processChallenge(challenge, rng);
+            
+            // Final selection logging
+            console.log(`\n🎯 SELECTED: ${challenge.id} (index ${challengeIndex} of ${finalChallenges.length})`);
+            console.log(`   Original text: "${challenge.text}"`);
+            console.log(`   Processed text: "${processedChallenge.text}"`);
+            console.log(`   Challenge requirements met:`);
+            console.log(`     Rank ${rank}: ${challenge.ranks.length === 0 ? 'no restriction' : `must be in [${challenge.ranks.join(', ')}]`} ${challenge.ranks.length === 0 || challenge.ranks.includes(rank) ? '✓' : '✗'}`);
+            console.log(`     Column ${column}: ${challenge.columns.length === 0 ? 'no restriction' : `must be in [${challenge.columns.join(', ')}]`} ${challenge.columns.length === 0 || challenge.columns.includes(column) ? '✓' : '✗'}`);
+            console.log(`     Color ${color || 'none'}: ${!challenge.color ? 'no restriction' : `must be ${challenge.color}`} ${!challenge.color || !color || challenge.color === color ? '✓' : '✗'}`);
+            console.log(`=== END SELECTION ===\n`);
+            
+            gameState.usedChallenges.add(challenge.id);
+            
+            return processedChallenge;
         }
 
         // Render grid
@@ -618,8 +840,9 @@
             // Complete challenges
             if ((cell.challenge || cell.isLobby) && !cell.isCompleted && !cell.isLocked) {
                 completeCell(index);
-                checkWinCondition();
+                checkWinCondition(index);
             }
+            updateScoreDisplay();
         }
 
         // Check if cell is adjacent to explored AND completed cell
@@ -647,16 +870,35 @@
             const rng = new SeededRandom(seed);
             
             const options = [];
-            for (let i = 0; i < 3; i++) {
-                const challenge = selectChallenge(cell.row + 1, cell.col + 1, cell.color, rng);
-                options.push(challenge);
+            const attempts = [];
+            
+            // Generate more attempts to ensure we get valid options
+            for (let i = 0; i < 10; i++) {
+                const challenge = selectChallenge(7 - cell.row, cell.col + 1, cell.color, rng);
+                attempts.push(challenge);
+            }
+            
+            // Remove duplicates and take first 3
+            const uniqueOptions = [];
+            const seenIds = new Set();
+            
+            for (const attempt of attempts) {
+                if (!seenIds.has(attempt.id) && uniqueOptions.length < 3) {
+                    seenIds.add(attempt.id);
+                    uniqueOptions.push(attempt);
+                }
+            }
+            
+            // Fill with duplicates if needed
+            while (uniqueOptions.length < 3 && attempts.length > 0) {
+                uniqueOptions.push(attempts[uniqueOptions.length % attempts.length]);
             }
             
             const modal = document.getElementById('draft-modal');
             const optionsContainer = document.getElementById('draft-options');
             optionsContainer.innerHTML = '';
             
-            options.forEach((option, i) => {
+            uniqueOptions.forEach((option, i) => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'draft-option';
                 optionElement.textContent = option.text;
@@ -691,7 +933,7 @@
             } else if (resource === 'dice' && cell.challenge && gameState.resources.dice > 0) {
                 const seed = gameState.seed + index + Date.now();
                 const rng = new SeededRandom(seed);
-                cell.challenge = selectChallenge(cell.row + 1, cell.col + 1, cell.color, rng);
+                cell.challenge = selectChallenge(7 - row, col + 1, cell.color, rng);
                 gameState.resources.dice--;
                 showNotification('🎲 Challenge rerolled!');
             } else if (resource === 'gems' && cell.challenge && gameState.resources.gems > 0) {
@@ -737,18 +979,32 @@
             }
             
             updateResourceDisplay();
+            updateScoreDisplay();
             renderGrid();
         }
 
         // Check win condition
-        function checkWinCondition() {
+        function checkWinCondition(triggeredIndex = null) {
             const path = findPath();
+            const wasIncomplete = !gameState.isComplete;
+
             if (path.length > 0) {
                 gameState.isComplete = true;
                 gameState.completedPath = path;
-                showCompletionModal();
+
+                // Only show modal if:
+                // - the game was not complete before
+                // - and the triggered cell is part of the new path
+                if (wasIncomplete && triggeredIndex !== null && path.includes(triggeredIndex)) {
+                    showCompletionModal();
+                }
+            } else {
+                gameState.isComplete = false;
+                gameState.completedPath = [];
             }
+
             updatePathDisplay();
+            updateScoreDisplay();
         }
 
         // Find path from lobby to goal
@@ -780,6 +1036,7 @@
                     const adjCell = gameState.grid[i];
                     if (Math.abs(adjCell.col - currentCell.col) > 1) return false;
                     
+                    // Allow movement to goal cell even if not completed, but other cells must be completed
                     return adjCell.isCompleted || adjCell.isGoal;
                 });
                 
@@ -882,12 +1139,86 @@
             gameState.completedPath = [];
             gameState.isComplete = false;
             gameState.exploredCells = new Set();
+            gameState.usedChallenges = new Set(); // Add this line
+            
+            // Show/hide days control based on mode
+            const daysControl = document.getElementById('days-control');
+            if (gameState.mode.includes('weekly')) {
+                daysControl.style.display = 'block';
+                document.getElementById('days-counter').value = 1;
+            } else {
+                daysControl.style.display = 'none';
+            }
             
             generateGrid();
+
+            const lobbyCellIndex = gameState.grid.findIndex(cell => cell.isLobby);
+            if (lobbyCellIndex !== -1) {
+                gameState.grid[lobbyCellIndex].isCompleted = true;
+            }
             renderGrid();
             updateResourceDisplay();
+            updateScoreDisplay(); // Add this line
         }
 
+        function calculateScore() {
+            const completedCount = gameState.grid.filter(cell => cell.isCompleted).length;
+            const hasPath = gameState.isComplete ? 10 : 0; 
+            let score = completedCount + hasPath;
+            
+            if (gameState.mode.includes('weekly')) {
+                const days = parseInt(document.getElementById('days-counter').value) || 1;
+                score = Math.max(0, score - (days - 1));
+            }
+            
+            return score;
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = calculateScore();
+        }
+
+        function shareResult() {
+            let result = '';
+            const score = calculateScore();
+            const isMulti = gameState.mode.includes('weekly');
+            const days = isMulti ? (parseInt(document.getElementById('days-counter').value) || 1) : 1;
+            
+            const modeNames = {
+                'daily-std': 'One Day Standard',
+                'weekly-std': 'Multi Standard', 
+                'daily-draft': 'One Day Mt Holly',
+                'weekly-draft': 'Multi Mt Holly'
+            };
+            
+            result += `Blue Prince ${modeNames[gameState.mode]}\n`;
+            result += `Score: ${score}`;
+            if (isMulti) result += ` (${days} days)`;
+            result += '\n\n';
+            
+            // Create emoji grid
+            for (let row = 0; row < 7; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const index = row * 5 + col;
+                    const cell = gameState.grid[index];
+                    
+                    if (gameState.completedPath.includes(index)) {
+                        result += '🟩';
+                    } else if (cell.isCompleted) {
+                        result += '⬜';
+                    } else {
+                        result += '⬛';
+                    }
+                }
+                result += '\n';
+            }
+            
+            navigator.clipboard.writeText(result).then(() => {
+                showNotification('📋 Result shared to clipboard!');
+            });
+        }
+
+        
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Mode selection
@@ -928,6 +1259,12 @@
             document.getElementById('close-modal-btn').addEventListener('click', () => {
                 document.getElementById('completion-modal').style.display = 'none';
             });
+
+            // Days counter for multi modes
+            document.getElementById('days-counter').addEventListener('input', updateScoreDisplay);
+
+            // Share button
+            document.getElementById('share-btn').addEventListener('click', shareResult);
 
             // Initialize first game
             initGame();

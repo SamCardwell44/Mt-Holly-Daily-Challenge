@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Prince Daily Challenges</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #e94560;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #e94560;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #e94560;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #e94560; }
+            to { text-shadow: 0 0 20px #e94560, 0 0 30px #e94560; }
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(45deg, #16213e, #0f3460);
+            color: #e94560;
+            border: 2px solid #e94560;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(45deg, #e94560, #ff6b6b);
+            color: white;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+        }
+
+        .mode-info {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid #e94560;
+        }
+
+        .resources {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .resource-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #e94560;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .resource-item:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+
+        .stats {
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e94560;
+        }
+
+        .days-input {
+            background: rgba(0, 0, 0, 0.5);
+            color: #e94560;
+            border: 2px solid #e94560;
+            padding: 8px;
+            border-radius: 5px;
+            font-family: inherit;
+            text-align: center;
+            width: 80px;
+        }
+
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 60vh;
+        }
+
+        .challenge-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 4px;
+            max-width: 700px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #e94560;
+        }
+
+        .challenge-cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #2a2a3e, #1a1a2e);
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.65em;
+            line-height: 1.1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .challenge-cell:hover {
+            border-color: #e94560;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .challenge-cell.completed {
+            background: linear-gradient(135deg, #4a9, #2d8);
+            border-color: #4a9;
+            color: white;
+        }
+
+        .challenge-cell.lobby {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .challenge-cell.goal {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .challenge-cell.locked {
+            background: #333;
+            border-color: #666;
+            color: #666;
+        }
+
+        .challenge-cell.hidden {
+            background: #222;
+            border-color: #555;
+            color: #777;
+        }
+
+        .challenge-cell.shop { border-color: #ffeb3b; }
+        .challenge-cell.mechanical { border-color: #2196f3; }
+        .challenge-cell.garden { border-color: #4caf50; }
+        .challenge-cell.redroom { border-color: #f44336; }
+        .challenge-cell.hallway { border-color: #ff9800; }
+
+        .cell-resources {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.7em;
+            display: flex;
+            gap: 1px;
+        }
+
+        .cell-challenge {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffd700;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            text-align: center;
+            font-size: 1.5em;
+            z-index: 1000;
+            animation: glow 2s infinite alternate;
+        }
+
+        .draft-options {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #e94560;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1000;
+            min-width: 400px;
+        }
+
+        .draft-option {
+            background: rgba(233, 69, 96, 0.2);
+            border: 2px solid #e94560;
+            color: #e94560;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .draft-option:hover {
+            background: rgba(233, 69, 96, 0.4);
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 768px) {
+            .challenge-grid {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 2px;
+                padding: 10px;
+                max-width: 90vw;
+            }
+            
+            .challenge-cell {
+                font-size: 0.55em;
+                padding: 4px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">Blue Prince Daily Challenges</h1>
+        <div class="nav">
+            <button class="nav-btn active" data-mode="daily">Daily Standard</button>
+            <button class="nav-btn" data-mode="weekly">Weekly Standard</button>
+            <button class="nav-btn" data-mode="draft-daily">Mt Holly Draft Daily</button>
+            <button class="nav-btn" data-mode="draft-weekly">Mt Holly Draft Weekly</button>
+        </div>
+    </div>
+
+    <div class="mode-info" id="modeInfo">
+        Complete all challenges in one day. Focus on efficiency and routing!
+    </div>
+
+    <div class="resources">
+        <div class="resource-item" id="gemsResource">💎 Gems: <span id="gemsCount">0</span></div>
+        <div class="resource-item" id="keysResource">🔑 Keys: <span id="keysCount">0</span></div>
+        <div class="resource-item" id="diceResource">🎲 Ivory Dice: <span id="diceCount">0</span></div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-item">
+            <strong>Daily Seed:</strong> <span id="dailySeed"></span>
+        </div>
+        <div class="stat-item">
+            <strong>Squares Completed:</strong> <span id="completed">0</span>/<span id="total">0</span>
+        </div>
+        <div class="stat-item" id="daysSection" style="display: none;">
+            <strong>Days Taken:</strong> 
+            <input type="number" class="days-input" id="daysInput" min="1" value="1">
+        </div>
+        <div class="stat-item">
+            <strong>Path Complete:</strong> <span id="pathStatus">No</span>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="challenge-grid" id="challengeGrid"></div>
+    </div>
+
+    <script>
+        // Challenge database
+        const CHALLENGES = [
+            // Easy challenges
+            { text: "Draft {1-3} room", difficulty: "easy", type: "daily", availableRanks: [1,2,3,4], colour: "" },
+            { text: "Have {2-5} keys at once", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Have {3-8} gems at once", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Have {1-2} ivory dice at once", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Have {20-50} coins at once", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Open {2-4} trunks", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Pull {2-4} levers", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Have {8-15} inventory items", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Dig {3-6} times", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Pet a dog", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Eat an apple", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Open a safe", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Use an upgrade disk", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            { text: "Rotate a room", difficulty: "easy", type: "daily", availableRanks: [], colour: "" },
+            
+            // Medium challenges  
+            { text: "Draft {2-4} shop rooms in one day", difficulty: "medium", type: "daily", availableRanks: [], colour: "shop" },
+            { text: "Draft {2-3} mechanical rooms in one day", difficulty: "medium", type: "daily", availableRanks: [], colour: "mechanical" },
+            { text: "Draft {2-3} garden rooms in one day", difficulty: "medium", type: "daily", availableRanks: [], colour: "garden" },
+            { text: "Draft {1-2} red rooms in one day", difficulty: "medium", type: "daily", availableRanks: [], colour: "redroom" },
+            { text: "Draft {3-5} hallway rooms in one day", difficulty: "medium", type: "daily", availableRanks: [], colour: "hallway" },
+            { text: "Reach the antechamber", difficulty: "medium", type: "daily", availableRanks: [5,6,7], colour: "" },
+            { text: "Complete a puzzle", difficulty: "medium", type: "daily", availableRanks: [4,5,6], colour: "" },
+            { text: "Ride an elevator", difficulty: "medium", type: "daily", availableRanks: [], colour: "" },
+            { text: "Buy an item from showroom", difficulty: "medium", type: "daily", availableRanks: [], colour: "shop" },
+            { text: "Craft an item in workshop", difficulty: "medium", type: "daily", availableRanks: [], colour: "mechanical" },
+            { text: "Give {5-15} coins to chapel", difficulty: "medium", type: "daily", availableRanks: [], colour: "" },
+            { text: "Observe a constellation", difficulty: "medium", type: "daily", availableRanks: [], colour: "" },
+            { text: "Look through telescope", difficulty: "medium", type: "daily", availableRanks: [], colour: "" },
+            { text: "Find a microchip", difficulty: "medium", type: "daily", availableRanks: [], colour: "mechanical" },
+            { text: "Launder currency", difficulty: "medium", type: "daily", availableRanks: [], colour: "" },
+            
+            // Hard challenges
+            { text: "Reach the basement", difficulty: "hard", type: "daily", availableRanks: [6,7], colour: "" },
+            { text: "Unlock blackthorn", difficulty: "hard", type: "daily", availableRanks: [6,7], colour: "" },
+            { text: "Unlock gem mines", difficulty: "hard", type: "daily", availableRanks: [6,7], colour: "" },
+            { text: "Unlock west gate", difficulty: "hard", type: "daily", availableRanks: [6,7], colour: "" },
+            { text: "Complete laboratory experiment", difficulty: "hard", type: "daily", availableRanks: [5,6,7], colour: "mechanical" },
+            { text: "Open the garage", difficulty: "hard", type: "daily", availableRanks: [4,5,6], colour: "" },
+            { text: "Draft architect house", difficulty: "hard", type: "daily", availableRanks: [5,6,7], colour: "" },
+            { text: "Draft shopping mall", difficulty: "hard", type: "daily", availableRanks: [5,6,7], colour: "shop" },
+            { text: "Draft both east and west wing halls", difficulty: "hard", type: "daily", availableRanks: [4,5,6], colour: "hallway" },
+            { text: "See an alzara vision", difficulty: "hard", type: "daily", availableRanks: [6,7], colour: "" },
+            { text: "Read fine print with magnifying glass", difficulty: "hard", type: "daily", availableRanks: [], colour: "" },
+            { text: "Use a major key", difficulty: "hard", type: "daily", availableRanks: [5,6,7], colour: "" },
+            { text: "Increase allowance to {30-50}", difficulty: "hard", type: "weekly", availableRanks: [], colour: "" },
+            { text: "Draft {3-5} gem cost rooms", difficulty: "hard", type: "daily", availableRanks: [5,6,7], colour: "" }
+        ];
+
+        const COLOURS = {
+            shop: "#ffeb3b",
+            mechanical: "#2196f3", 
+            garden: "#4caf50",
+            redroom: "#f44336",
+            hallway: "#ff9800"
+        };
+
+        // Game state
+        let gameState = {
+            mode: 'daily',
+            seed: '',
+            grid: [],
+            completedCells: new Set(),
+            resources: { gems: 0, keys: 0, dice: 0 },
+            visibleCells: new Set(),
+            pathComplete: false,
+            selectedCell: null,
+            draftingCell: null
+        };
+
+        const modeDescriptions = {
+            daily: "Complete all challenges in one day. Focus on efficiency and routing!",
+            weekly: "Complete challenges across multiple days. Track your day count!",
+            "draft-daily": "Click adjacent unexplored rooms to draft from 3 challenges. Complete in one day!",
+            "draft-weekly": "Click adjacent unexplored rooms to draft challenges. Complete across multiple days!"
+        };
+
+        // Seeded random number generator
+        class SeededRandom {
+            constructor(seed) {
+                this.seed = seed;
+            }
+            
+            next() {
+                this.seed = (this.seed * 9301 + 49297) % 233280;
+                return this.seed / 233280;
+            }
+        }
+
+        function generateDailySeed() {
+            const today = new Date();
+            const dateString = today.getFullYear() + '-' + 
+                             String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                             String(today.getDate()).padStart(2, '0');
+            return dateString.split('').reduce((a, b) => {
+                a = ((a << 5) - a) + b.charCodeAt(0);
+                return a & a;
+            }, 0);
+        }
+
+        function getRandomInRange(rng, min, max) {
+            return Math.floor(rng.next() * (max - min + 1)) + min;
+        }
+
+        function processChallenge(challenge, rng) {
+            let text = challenge.text;
+            const rangeMatch = text.match(/\{(\d+)-(\d+)\}/);
+            if (rangeMatch) {
+                const min = parseInt(rangeMatch[1]);
+                const max = parseInt(rangeMatch[2]);
+                const value = getRandomInRange(rng, min, max);
+                text = text.replace(rangeMatch[0], value.toString());
+            }
+            return { ...challenge, text, originalValue: rangeMatch ? parseInt(rangeMatch[1]) : null };
+        }
+
+        function getRankForRow(row) {
+            return 7 - row; // Row 0 = Rank 7, Row 6 = Rank 1
+        }
+
+        function isValidChallengeForCell(challenge, row, col) {
+            const rank = getRankForRow(row);
+            
+            // Check rank restrictions
+            if (challenge.availableRanks.length > 0 && !challenge.availableRanks.includes(rank)) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        function getChallengesForCell(row, col, rng, mode) {
+            const rank = getRankForRow(row);
+            let validChallenges = CHALLENGES.filter(c => {
+                if (mode.includes('daily') && c.type !== 'daily') return false;
+                if (mode.includes('weekly') && c.type === 'daily') return true;
+                return isValidChallengeForCell(c, row, col);
+            });
+
+            // Weight by difficulty based on rank
+            let difficultyWeights = { easy: 1, medium: 1, hard: 1 };
+            if (rank <= 3) difficultyWeights = { easy: 3, medium: 1, hard: 0 };
+            else if (rank <= 5) difficultyWeights = { easy: 2, medium: 2, hard: 1 };
+            else difficultyWeights = { easy: 1, medium: 2, hard: 3 };
+
+            // Create weighted array
+            let weightedChallenges = [];
+            validChallenges.forEach(c => {
+                const weight = difficultyWeights[c.difficulty] || 1;
+                for (let i = 0; i < weight; i++) {
+                    weightedChallenges.push(c);
+                }
+            });
+
+            if (weightedChallenges.length === 0) {
+                return processChallenge({ text: "Empty", difficulty: "easy", type: "daily", colour: "" }, rng);
+            }
+
+            const selected = weightedChallenges[Math.floor(rng.next() * weightedChallenges.length)];
+            return processChallenge(selected, rng);
+        }
+
+        function getColourForCell(row, col, rng) {
+            const colours = Object.keys(COLOURS);
+            if (rng.next() < 0.3) { // 30% chance of coloured square
+                return colours[Math.floor(rng.next() * colours.length)];
+            }
+            return "";
+        }
+
+        function spawnResources(rng) {
+            const resources = [];
+            const gemCount = getRandomInRange(rng, 2, 5);
+            const keyCount = getRandomInRange(rng, 1, 3);
+            const diceCount = getRandomInRange(rng, 0, 2);
+            
+            // Spawn gems
+            for (let i = 0; i < gemCount; i++) {
+                let pos;
+                do {
+                    pos = Math.floor(rng.next() * 49);
+                } while (pos === 42 || pos === 6 || resources.some(r => r.pos === pos)); // Avoid lobby/goal
+                resources.push({ type: 'gem', pos });
+            }
+            
+            // Spawn keys  
+            for (let i = 0; i < keyCount; i++) {
+                let pos;
+                do {
+                    pos = Math.floor(rng.next() * 49);
+                } while (pos === 42 || pos === 6 || resources.some(r => r.pos === pos));
+                resources.push({ type: 'key', pos });
+            }
+            
+            // Spawn dice
+            for (let i = 0; i < diceCount; i++) {
+                let pos;
+                do {
+                    pos = Math.floor(rng.next() * 49);
+                } while (pos === 42 || pos === 6 || resources.some(r => r.pos === pos));
+                resources.push({ type: 'dice', pos });
+            }
+            
+            return resources;
+        }
+
+        function generateLockedCells(rng) {
+            const locked = new Set();
+            const lockCount = getRandomInRange(rng, 2, 4);
+            
+            for (let i = 0; i < lockCount; i++) {
+                let pos;
+                do {
+                    pos = Math.floor(rng.next() * 49);
+                } while (pos === 42 || pos === 6 || locked.has(pos)); // Avoid lobby/goal
+                locked.add(pos);
+            }
+            
+            return locked;
+        }
+
+        function generateGrid(mode, seed) {
+            const rng = new SeededRandom(seed);
+            const grid = Array(49).fill(null);
+            
+            // Set lobby and goal
+            grid[42] = { type: 'lobby', text: 'LOBBY', completed: false, colour: "", resources: [] }; // Bottom left
+            grid[6] = { type: 'goal', text: 'GOAL', completed: false, colour: "", resources: [] }; // Top right
+            
+            // Generate resources and locked cells
+            const resources = spawnResources(rng);
+            const lockedCells = generateLockedCells(rng);
+            
+            // Fill grid with challenges
+            for (let i = 0; i < 49; i++) {
+                if (grid[i] === null) {
+                    const row = Math.floor(i / 7);
+                    const col = i % 7;
+                    
+                    const colour = getColourForCell(row, col, rng);
+                    const challenge = getChallengesForCell(row, col, rng, mode);
+                    
+                    // Override challenge if cell has specific colour requirement
+                    let finalChallenge = challenge;
+                    if (colour && challenge.colour !== colour) {
+                        const colourChallenges = CHALLENGES.filter(c => 
+                            c.colour === colour && isValidChallengeForCell(c, row, col));
+                        if (colourChallenges.length > 0) {
+                            const selected = colourChallenges[Math.floor(rng.next() * colourChallenges.length)];
+                            finalChallenge = processChallenge(selected, rng);
+                        }
+                    }
+                    
+                    const cellResources = resources.filter(r => r.pos === i);
+                    
+                    grid[i] = {
+                        type: lockedCells.has(i) ? 'locked' : 'challenge',
+                        text: finalChallenge.text,
+                        difficulty: finalChallenge.difficulty,
+                        completed: false,
+                        colour: colour,
+                        resources: cellResources,
+                        originalValue: finalChallenge.originalValue,
+                        visible: !mode.includes('draft')
+                    };
+                }
+            }
+            
+            return grid;
+        }
+
+        function initializeGame(mode) {
+            gameState.mode = mode;
+            gameState.seed = generateDailySeed();
+            gameState.grid = generateGrid(mode, gameState.seed);
+            gameState.completedCells.clear();
+            gameState.resources = { gems: 0, keys: 0, dice: 0 };
+            gameState.pathComplete = false;
+            gameState.selectedCell = null;
+            gameState.draftingCell = null;
+            
+            if (mode.includes('draft')) {
+                gameState.visibleCells.clear();
+                gameState.visibleCells.add(42); // Lobby visible
+                // Make adjacent cells to lobby visible
+                getAdjacentCells(42).forEach(idx => {
+                    if (gameState.grid[idx] && gameState.grid[idx].type === 'challenge') {
+                        gameState.visibleCells.add(idx);
+                    }
+                });
+            }
+            
+            updateDisplay();
+        }
+
+        function getAdjacentCells(index) {
+            const row = Math.floor(index / 7);
+            const col = index % 7;
+            const adjacent = [];
+            
+            for (let r = -1; r <= 1; r++) {
+                for (let c = -1; c <= 1; c++) {
+                    if (r === 0 && c === 0) continue;
+                    const newRow = row + r;
+                    const newCol = col + c;
+                    if (newRow >= 0 && newRow < 7 && newCol >= 0 && newCol < 7) {
+                        adjacent.push(newRow * 7 + newCol);
+                    }
+                }
+            }
+            return adjacent;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('challengeGrid');
+            grid.innerHTML = '';
+            
+            gameState.grid.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'challenge-cell';
+                cellDiv.dataset.index = index;
+                
+                if (cell) {
+                    // Add colour class
+                    if (cell.colour) {
+                        cellDiv.classList.add(cell.colour);
+                    }
+                    
+                    // Handle draft mode visibility
+                    if (gameState.mode.includes('draft') && !gameState.visibleCells.has(index) && cell.type === 'challenge') {
+                        cellDiv.classList.add('hidden');
+                        cellDiv.innerHTML = '<div class="cell-challenge">?</div>';
+                    } else {
+                        // Add type classes
+                        if (cell.completed) cellDiv.classList.add('completed');
+                        if (cell.type === 'lobby') cellDiv.classList.add('lobby');
+                        if (cell.type === 'goal') cellDiv.classList.add('goal');
+                        if (cell.type === 'locked') cellDiv.classList.add('locked');
+                        
+                        // Resources display
+                        const resourcesDiv = document.createElement('div');
+                        resourcesDiv.className = 'cell-resources';
+                        cell.resources.forEach(resource => {
+                            const icon = resource.type === 'gem' ? 'G' : 
+                                       resource.type === 'key' ? 'K' : 'D';
+                            resourcesDiv.textContent += icon;
+                        });
+                        
+                        // Challenge text
+                        const challengeDiv = document.createElement('div');
+                        challengeDiv.className = 'cell-challenge';
+                        challengeDiv.textContent = cell.text;
+                        
+                        cellDiv.appendChild(resourcesDiv);
+                        cellDiv.appendChild(challengeDiv);
+                    }
+                    
+                    cellDiv.addEventListener('click', () => handleCellClick(index));
+                }
+                
+                grid.appendChild(cellDiv);
+            });
+        }
+
+        function handleCellClick(index) {
+            const cell = gameState.grid[index];
+            if (!cell) return;
+            
+            // Draft mode - reveal adjacent cells
+            if (gameState.mode.includes('draft') && !gameState.visibleCells.has(index) && cell.type === 'challenge') {
+                // Check if adjacent to visible cell
+                const adjacent = getAdjacentCells(index);
+                const hasVisibleAdjacent = adjacent.some(adj => gameState.visibleCells.has(adj));
+                
+                if (hasVisibleAdjacent) {
+                    showDraftOptions(index);
+                }
+                return;
+            }
+            
+            // Resource actions
+            if (gameState.selectedCell === 'dice' && cell.type === 'challenge' && gameState.resources.dice > 0) {
+                rerollChallenge(index);
+                gameState.selectedCell = null;
+                return;
+            }
+            
+            if (gameState.selectedCell === 'key' && cell.type === 'locked' && gameState.resources.keys > 0) {
+                unlockCell(index);
+                gameState.selectedCell = null;
+                return;
+            }
+            
+            if (gameState.selectedCell === 'gem' && cell.type === 'challenge' && cell.originalValue && gameState.resources.gems > 0) {
+                reduceChallenge(index);
+                gameState.selectedCell = null;
+                return;
+            }
+            
+            // Normal cell interaction
+            if (cell.type === 'challenge' && cell.type !== 'locked') {
+                // Collect resources
+                cell.resources.forEach(resource => {
+                    gameState.resources[resource.type]++;
+                });
+                cell.resources = [];
+                
+                // Toggle completion
+                cell.completed = !cell.completed;
+                if (cell.completed) {
+                    gameState.completedCells.add(index);
+                } else {
+                    gameState.completedCells.delete(index);
+                }
+                
+                // Check for path completion
+                checkPathCompletion();
+                updateDisplay();
+            }
+        }
+
+        function showDraftOptions(index) {
+            gameState.draftingCell = index;
+            const rng = new SeededRandom(gameState.seed + index);
+            const row = Math.floor(index / 7);
+            const col = index % 7;
+            
+            const options = [];
+            for (let i = 0; i < 3; i++) {
+                options.push(getChallengesForCell(row, col, rng, gameState.mode));
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'draft-options';
+            modal.innerHTML = `
+                <h3 style="color: #e94560; text-align: center; margin-bottom: 20px;">Choose a Challenge</h3>
+                ${options.map((option, i) => `
+                    <div class="draft-option" data-option="${i}">
+                        ${option.text}
+                        <br><small>(${option.difficulty})</small>
+                    </div>
+                `).join('')}
+            `;
+            
+            modal.querySelectorAll('.draft-option').forEach((option, i) => {
+                option.addEventListener('click', () => {
+                    selectDraftOption(index, options[i]);
+                    modal.remove();
+                });
+            });
+            
+            document.body.appendChild(modal);
+        }
+
+        function selectDraftOption(index, challenge) {
+            const cell = gameState.grid[index];
+            cell.text = challenge.text;
+            cell.difficulty = challenge.difficulty;
+            cell.originalValue = challenge.originalValue;
+            cell.visible = true;
+            
+            gameState.visibleCells.add(index);
+            gameState.draftingCell = null;
+            
+            // Reveal adjacent cells
+            const adjacent = getAdjacentCells(index);
+            adjacent.forEach(adj => {
+                if (gameState.grid[adj] && gameState.grid[adj].type === 'challenge') {
+                    gameState.visibleCells.add(adj);
+                }
+            });
+            
+            updateDisplay();
+        }
+
+        function rerollChallenge(index) {
+            const cell = gameState.grid[index];
+            const rng = new SeededRandom(gameState.seed + index + Date.now());
+            const row = Math.floor(index / 7);
+            const col = index % 7;
+            
+            const newChallenge = getChallengesForCell(row, col, rng, gameState.mode);
+            cell.text = newChallenge.text;
+            cell.difficulty = newChallenge.difficulty;
+            cell.originalValue = newChallenge.originalValue;
+            
+            gameState.resources.dice--;
+            updateDisplay();
+        }
+
+        function unlockCell(index) {
+            const cell = gameState.grid[index];
+            cell.type = 'challenge';
+            gameState.resources.keys--;
+            updateDisplay();
+        }
+
+        function reduceChallenge(index) {
+            const cell = gameState.grid[index];
+            if (cell.originalValue && cell.originalValue > 1) {
+                const currentMatch = cell.text.match(/(\d+)/);
+                if (currentMatch) {
+                    const currentValue = parseInt(currentMatch[1]);
+                    if (currentValue > 1) {
+                        cell.text = cell.text.replace(/\d+/, (currentValue - 1).toString());
+                        gameState.resources.gems--;
+                    }
+                }
+            }
+            updateDisplay();
+        }
+
+        function checkPathCompletion() {
+            // Simple path check - ensure there's a connected path from lobby to goal
+            // For now, just check if goal is reachable through completed adjacent cells
+            const visited = new Set();
+            const queue = [42]; // Start from lobby
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                if (visited.has(current)) continue;
+                visited.add(current);
+                
+                if (current === 6) { // Reached goal
+                    gameState.pathComplete = true;
+                    showWinMessage();
+                    return;
+                }
+                
+                const adjacent = getAdjacentCells(current);
+                adjacent.forEach(adj => {
+                    const cell = gameState.grid[adj];
+                    if (cell && (cell.completed || cell.type === 'goal' || cell.type === 'lobby') && !visited.has(adj)) {
+                        queue.push(adj);
+                    }
+                });
+            }
+        }
+
+        function showWinMessage() {
+            if (document.querySelector('.win-message')) return; // Prevent multiple messages
+            
+            const message = document.createElement('div');
+            message.className = 'win-message';
+            message.innerHTML = `
+                <h2>🎉 Path Complete! 🎉</h2>
+                <p>You've created a path from lobby to goal!</p>
+                <p>Continue completing challenges or start a new game.</p>
+                <button onclick="this.parentElement.remove()" style="
+                    background: #e94560; 
+                    color: white; 
+                    border: none; 
+                    padding: 10px 20px; 
+                    border-radius: 5px; 
+                    margin-top: 15px;
+                    cursor: pointer;
+                ">Continue</button>
+            `;
+            document.body.appendChild(message);
+        }
+
+        function updateDisplay() {
+            const totalChallenges = gameState.grid.filter(cell => cell && cell.type === 'challenge').length;
+            const completedCount = gameState.completedCells.size;
+            
+            document.getElementById('dailySeed').textContent = new Date().toISOString().split('T')[0];
+            document.getElementById('completed').textContent = completedCount;
+            document.getElementById('total').textContent = totalChallenges;
+            document.getElementById('pathStatus').textContent = gameState.pathComplete ? 'Yes' : 'No';
+            
+            document.getElementById('gemsCount').textContent = gameState.resources.gems;
+            document.getElementById('keysCount').textContent = gameState.resources.keys;
+            document.getElementById('diceCount').textContent = gameState.resources.dice;
+            
+            renderGrid();
+        }
+
+        // Event listeners
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const mode = e.target.dataset.mode;
+                document.getElementById('modeInfo').textContent = modeDescriptions[mode];
+                document.getElementById('daysSection').style.display = mode.includes('weekly') ? 'block' : 'none';
+                
+                initializeGame(mode);
+            });
+        });
+
+        // Resource selection
+        document.getElementById('gemsResource').addEventListener('click', () => {
+            gameState.selectedCell = gameState.selectedCell === 'gem' ? null : 'gem';
+            updateResourceSelection();
+        });
+
+        document.getElementById('keysResource').addEventListener('click', () => {
+            gameState.selectedCell = gameState.selectedCell === 'key' ? null : 'key';
+            updateResourceSelection();
+        });
+
+        document.getElementById('diceResource').addEventListener('click', () => {
+            gameState.selectedCell = gameState.selectedCell === 'dice' ? null : 'dice';
+            updateResourceSelection();
+        });
+
+        function updateResourceSelection() {
+            document.querySelectorAll('.resource-item').forEach(item => {
+                item.style.background = 'rgba(0, 0, 0, 0.3)';
+            });
+            
+            if (gameState.selectedCell === 'gem') {
+                document.getElementById('gemsResource').style.background = 'rgba(233, 69, 96, 0.3)';
+            } else if (gameState.selectedCell === 'key') {
+                document.getElementById('keysResource').style.background = 'rgba(233, 69, 96, 0.3)';
+            } else if (gameState.selectedCell === 'dice') {
+                document.getElementById('diceResource').style.background = 'rgba(233, 69, 96, 0.3)';
+            }
+        }
+
+        // Initialize
+        initializeGame('daily');
+    </script>
+</body>
+</html>

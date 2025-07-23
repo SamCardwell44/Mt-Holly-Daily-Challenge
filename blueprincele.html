@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blue Prince Daily Challenge</title>
     <style>
         body {
             font-family: 'Georgia', serif;
@@ -177,6 +176,7 @@
         .cell.green { border-color: #4CAF50; border-width: 3px; }
         .cell.red { border-color: #F44336; border-width: 3px; }
         .cell.orange { border-color: #FF9800; border-width: 3px; }
+        .cell.purple {border-color: #9c27b0;; border-width: 3px; }
         
         .cell.path {
             box-shadow: 0 0 20px rgba(0,255,136,0.8);
@@ -266,15 +266,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏰 Blue Prince Daily Challenge</h1>
+        <h1>🏰 Mt Holly. Daily Challenge</h1>
         
         <div class="game-controls">
             <div class="mode-select">
-                <button id="daily-std" class="mode-btn active">One Day Standard</button>
-                <button id="weekly-std" class="mode-btn">Multi Standard</button>
-                <button id="daily-draft" class="mode-btn">One Day Mt Holly Draft</button>
-                <button id="weekly-draft" class="mode-btn">Multi Mt Holly Draft</button>
+                <button id="daily-std" class="mode-btn active">Standard Expedition</button>
+                <button id="weekly-std" class="mode-btn">Standard Campaign</button>
+                <button id="daily-draft" class="mode-btn">Draft Expedition</button>
+                <button id="weekly-draft" class="mode-btn">Draft Campaign</button>
             </div>
+
+        <div class="daily-toggle">
+            <label>
+                <input type="checkbox" id="daily-seed-toggle" checked> Use Daily Seed
+            </label>
+        </div>
             
             <div class="second-row" style="display: flex; gap: 20px; margin-top: 15px; justify-content: center; align-items: center;">
                 <div class="resources">
@@ -347,14 +353,21 @@
             isComplete: false,
             exploredCells: new Set(),
             seed: '',
-            usedChallenges: new Set()
+            usedChallenges: new Set(),
         };
+
+        let useRandomSeed = false;
+        let randomSeed = Math.random().toString(36).substring(7);
 
         // Challenge database
         const challenges = [
             // Easy challenges Daily
-            { id: 'draft_roomtype_1', text: "Draft {1:4} {roomtype} rooms", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
-            { id: 'keys_at_once_1', text: "Have {3:8} keys at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
+            { id: 'draft_purple', text: "Draft {2:4} purple rooms", ranks: [], columns: [], color: 'purple', difficulty: 'easy', type: 'none' },
+            { id: 'draft_yellow', text: "Draft {2:4} shop rooms", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'draft_blue', text: "Draft {4:8} blue rooms", ranks: [], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
+            { id: 'draft_red', text: "Draft {2:4} red rooms", ranks: [], columns: [], color: 'red', difficulty: 'easy', type: 'none' },
+            { id: 'draft_green', text: "Draft {2:4} red rooms", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'none' },
+            { id: 'keys_at_once_1', text: "Have {3:8} keys at once", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'daily' },
             { id: 'gems_at_once_1', text: "Have {3:6} gems at once", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'daily' },
             { id: 'coins_at_once_1', text: "Have {20:50} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'daily' },
             { id: 'eat_food_1', text: "Eat {1:3} {foodtype}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'daily' },
@@ -370,7 +383,13 @@
             { id: 'draft_rare_4', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'inventory_items_1', text: "Have {3:5} inventory items", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
             { id: 'use_terminal_1', text: "Use a terminal", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
-            { id: 'buy_shop', text: "Buy something from a shop room", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'buy_shop_1', text: "Buy something from a shop room", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'unlock_doors', text: "Unlock {2:4} locked doors", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
+            { id: 'chain_locked', text: "Open {2:5} locked doors in a  row", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
+            { id: 'chain_gems', text: "Draft {2:3} rooms with a gem cost in a row", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'none' },
+            
+            
+            
 
             
             // Medium challenges Daily
@@ -382,14 +401,15 @@
             { id: 'craft_item_1', text: "Craft an item", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
             { id: 'observe_constellation_1', text: "Observe a constellation", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
             { id: 'draft_both_common_1', text: "Draft both {common_room} and {common_room} at the same time", ranks: [6,7], columns: [], color: "", difficulty: "medium", type: "none" },
-            { id: 'special_key_1', text: "Use a special key", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'special_key_1', text: "Use a special (non-standard) key", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'lab_experiment_1', text: "Trigger a laboratory experiment", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none' },
             { id: 'read_books_1', text: "Read {2:4} different books", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'find_memos_1', text: "Find {2:4} different memos", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'end_in_roomtype_1', text: "End the day in a {roomtype} room", ranks: [3,4,5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
             { id: 'reroll_choices_1', text: "Reroll room choices {2:4} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
-            { id: 'over_60_steps_1', text: "Have over 60 steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
-            { id: 'end_with_steps_1', text: "End the day with {20:40}+ steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
+            { id: 'ivory_dice_1', text: "Have {2:4} ivory dice at once", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'daily' },
+            { id: 'over_60_steps_1', text: "Have over 60 steps", ranks: [3,4,5,6,7], columns: [], color: 'purple', difficulty: 'medium', type: 'daily' },
+            { id: 'end_with_steps_1', text: "End the day with {20:40}+ steps", ranks: [3,4,5,6,7], columns: [], color: 'purple', difficulty: 'medium', type: 'daily' },
             { id: 'draft_dead_ends_1', text: "Draft {2:5} dead ends", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'draft_lavatory_1', text: "Draft the lavatory", ranks: [3,4,5,6,7], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
             { id: 'draft_furnace_1', text: "Draft the furnace", ranks: [3,4,5,6,7], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
@@ -397,12 +417,22 @@
             { id: 'find_item_2', text: "Find a {item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'pull_levers_1', text: "Pull {1:2} levers", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'buy_multi_shop', text: "Buy {2:5} things from shop rooms", ranks: [3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
+            { id: 'draft_double_purple', text: "Draft 2 purple rooms adjacent to each other", ranks: [], columns: [], color: 'purple', difficulty: 'medium', type: 'none' },
+            { id: 'draft_double_orange', text: "Draft 2 hallway rooms adjacent to each other", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
+            { id: 'bed_side', text: "Draft a purple room on the west or east edges of the estate", ranks: [], columns: [1,5], color: 'purple', difficulty: 'medium', type: 'none' },
+            { id: 'gem_flower', text: "Collect a gem from a flower", ranks: [5,6,7], columns: [1,5], color: 'green', difficulty: 'medium', type: 'none' },
+            { id: 'draft_mechanical', text: "Draft {2:3} mechanical rooms (rooms with cog icons)", ranks: [3,4,5,6,7], columns: [], color: 'green', difficulty: 'medium', type: 'none' },
+            { id: 'straight_horizontal', text: "Have a straight, unblocked horizontal path across a whole row of the estate", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
+            { id: 'blocked_doors', text: "Draft a room with {2:3} of its doors blocked", ranks: [2,3,4,5,6,7], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
+            { id: 'multicolour', text: "Have 1 room of each colour in your estate: Red, Yellow, Green, Blue, Purple, Orange", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'tap', text: "Turn on a tap", ranks: [], columns: [4,5,6,7], color: 'green', difficulty: 'medium', type: 'none' },
+            { id: 'tap', text: "Purchase 5 bananas from the kitchen", ranks: [4,5,6,7], columns: [], color: 'yellow', difficulty: 'mhard', type: 'none' },
             
             // Hard challenges Daily
             { id: 'enter_antechamber_1', text: "Enter the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none'},
             { id: 'rotate_room_1', text: "Rotate a room", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'lab_experiment_multi_1', text: "Trigger a laboratory experiment {2:5} times", ranks: [5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none'},
-            { id: 'both_wing_halls_1', text: "Have both wing halls at once", ranks: [6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'none' },
+            { id: 'both_wing_halls_1', text: "Have both east and west wing halls at once", ranks: [6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'none' },
             { id: 'speak_alzara_1', text: "Speak with Alzara", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'coins_chapel_1', text: "Give {3:10} coins to chapel", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'rare_next_common_1', text: "Draft {rare_room} next to {common_room}", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
@@ -411,6 +441,15 @@
             { id: 'end_rare_room_1', text: "End the day in a {rare_room}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'none' },
             { id: 'open_garage_1', text: "Open the garage", ranks: [5,6,7], columns: [1], color: '', difficulty: 'hard', type: 'none' },
             { id: 'light_dark_room_1', text: "Light the dark room", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
+            { id: 'power_room', text: "Provide power to {1:3} rooms", ranks: [4,5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none' },
+            { id: 'straight_vertical', text: "Have a straight, unblocked vertical path across a whole column of the estate", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
+            { id: 'buyout_commissary', text: "Buyout the commissary", ranks: [], columns: [5,6,7], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'antechamber_passthrough', text: "Walk in one door of the antechamber and out another.", ranks: [7], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'gym_steps', text: "Lose at least {4:10} steps in the gymnasium", ranks: [3,4,5,6], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
+            { id: 'fail_parlor', text: "Fail the parlor puzzle", ranks: [3,4,5], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
+            { id: 'weight_steps', text: "Lose at least {10:20} steps in the weight room", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
+            { id: 'lockpick', text: "Pick {1:3} locks", ranks: [], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
+            
 
 
             //Easy challenges multi
@@ -419,19 +458,19 @@
             { id: 'draft_chess_pieces_1', text: "Draft 1 of every chess piece", ranks: [4,5,6,7], columns: [1,5], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'great_hall_doors_1', text: "Open all the doors in the great hall", ranks: [4,5,6,7], columns: [], color: 'orange', difficulty: 'easy', type: 'multi' },
             { id: 'adjust_rarity_1', text: "Adjust a room's rarity", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
-            { id: 'over_100_steps_1', text: "Have over 100 steps", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'over_100_steps_1', text: "Have over 100 steps", ranks: [4,5,6,7], columns: [], color: 'purple', difficulty: 'easy', type: 'multi' },
             { id: 'parlor_puzzles_multi_1', text: "Complete {2:5} parlor puzzles", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'dartboard_puzzles_multi_1', text: "Complete {2:5} dartboard puzzles", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'same_room_twice_1', text: "Have 2 of the same room at once", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'two_items_once_1', text: "Have {item} and {item} at the same time", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
-            { id: 'keys_at_once_2', text: "Have {8:20} keys at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'keys_at_once_2', text: "Have {8:20} keys at once", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'multi' },
             { id: 'gems_at_once_2', text: "Have {10:20} gems at once", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
             { id: 'coins_at_once_2', text: "Have {50:120} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'multi' },
+            { id: 'ivory_dice_2', text: "Have {4:8} ivory dice at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'eat_food_2', text: "Eat {5:10} {foodtype}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'open_trunks_2', text: "Open {5:10} trunks", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'dig_times_2', text: "Dig {5:10} times", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
-            
-            
+                      
             //Medium challenges multi
             { id: 'reach_basement_1', text: "Reach the basement", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi'},
             { id: 'time_safe_1', text: "Open a time safe", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'hard', type: 'multi'},
@@ -447,6 +486,10 @@
             { id: 'inventory_items_2', text: "Have {6:10} inventory items", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
             { id: 'over_60_steps_1', text: "Have over 100 steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
             { id: 'end_with_steps_1', text: "End the day with {50:80}+ steps", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'estate_size_1', text: "End a day with a {estateSize}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'draft_room_in_square', text: "Draft {common_room} in this position on your map.", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+            { id: 'mora_jai', text: "Complete a mora jai puzzle box", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'multi' },
+
 
             //Hard challenges multi
             { id: 'west_gate_path_1', text: "Unlock West Gate Path", ranks: [6,7], columns: [1], color: '', difficulty: "hard", type: "multi" },
@@ -455,6 +498,7 @@
             { id: 'win_roulette_1', text: "Win at roulette", ranks: [5,6,7], columns: [1,5], color: 'yellow', difficulty: 'hard', type: 'multi' },
             { id: 'fill_house_1', text: "Fill every square in the house", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
             { id: 'sanctum_key_1', text: "Find a sanctum key", ranks: [6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
+            { id: 'estate_type_1', text: "End a day with a {estateType}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
             
         ];
 
@@ -474,7 +518,6 @@
 
         const roomTypes = [
             "shop", "garden", "red", "blue", "mechanical", "hallway", "bedroom"
-
         ];
 
         const foodTypes = [
@@ -490,10 +533,21 @@
         ];
 
         const craftedItems= [
-            "lucky  purse", "powered electromagnet", "Dowsing rod", "power hammer", "pick sound amplifier", "detector shovel", "jack hammer", "burning glass"
+            "lucky purse", "powered electromagnet", "Dowsing rod", "power hammer", "pick sound amplifier", "detector shovel", "jack hammer", "burning glass"
 
         ];
-        
+       
+
+        const estateSize= [
+            "Abandoned Project (Less than 5 rooms)", "Humble Bungalow (Between 5-10 rooms)", "Charming Cottage (Between 10-20 rooms)", 
+            "Respectable Villa (Between 20-30 rooms)", "Impressive Manor (30-40 Rooms)", "Opulent Chateau (40+ rooms)"
+        ];
+
+
+        const estateTypes= [
+            "Academic Estate (5+ classrooms/libraries)", "Archaelogical Estate (18+ Excavated Dig Spots)", "East Facing Estate (East wing favoured)",
+            "West Facing Estate (West wing favoured)", "Red Estate (5-6 red rooms)", "Garden Estate (3+ Green Rooms)", ""
+        ];
 
         // Colors for grid squares
         const colors = ['yellow', 'blue', 'green', 'red', 'orange', 'purple'];
@@ -561,7 +615,10 @@
         }
 
         // Get today's seed
-        function getTodaySeed() {
+        function getSeed() {
+            if (useRandomSeed) {
+                return randomSeed;
+            }
             const today = new Date();
             return `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
         }
@@ -609,13 +666,23 @@
                 const item = craftedItems[rng.nextInt(0, craftedItems.length - 1)];
                 text = text.replace('{crafted_item}', item);
             }
+
+            while (text.includes('{estateSize}')) {
+                const size= estateSize[rng.nextInt(0, estateSize.length - 1)];
+                text = text.replace('{estateSize}', size);
+            }
+
+            while (text.includes('{estateType}')) {
+                const estate = estateTypes[rng.nextInt(0, estateTypes.length - 1)];
+                text = text.replace('{estateType}', estate);
+            }
             
             return { ...challenge, text };
         }
 
         // Generate grid
         function generateGrid() {
-            const seed = getTodaySeed();
+            const seed = getSeed();
             gameState.seed = seed;
             const rng = new SeededRandom(seed + gameState.mode);
             
@@ -652,12 +719,7 @@
                         if (!isAdjacentToLobby && rng.next() < 0.15) {
                             cell.isLocked = true;
                         }
-                        
-                        // Add colors to some cells
-                        if (rng.next() < 0.3) {
-                            cell.color = colors[rng.nextInt(0, colors.length - 1)];
-                        }
-                        
+                                               
                         // Add resources
                         const resourceRoll = rng.next();
                         if (resourceRoll < 0.10) cell.hasGem = true;
@@ -680,19 +742,32 @@
         }
 
         // Select appropriate challenge for cell
-        function selectChallenge(rank, column, color, rng) {
+        function selectChallenge(rank, column, color, rng, forceColor = false) {
             const isMultiMode = gameState.mode.includes('weekly');
             
             // Enhanced debug logging - start of function
             console.log(`\n=== SELECTING CHALLENGE ===`);
             console.log(`Position: Rank ${rank}, Column ${column}, Color: ${color || 'none'}`);
-            console.log(`Mode: ${gameState.mode} (isMulti: ${isMultiMode})`);
+            console.log(`Mode: ${gameState.mode} (isMulti: ${isMultiMode}), forceColor: ${forceColor}`);
             
             // Priority 1: Row and column requirements must be correct
             let validChallenges = challenges.filter(c => {
                 const rankValid = c.ranks.length === 0 || c.ranks.includes(rank);
                 const columnValid = c.columns.length === 0 || c.columns.includes(column);
-                const colorValid = !color || !c.color || c.color === color;
+                
+                // NEW COLOR LOGIC:
+                let colorValid;
+                if (forceColor && color) {
+                    // When forcing a color (dice reroll or colored draft), only allow that color
+                    colorValid = c.color === color;
+                } else if (color) {
+                    // Cell has color - allow matching color challenges OR no-color challenges
+                    colorValid = (c.color === color);
+                } else {
+                    // Cell has no color - allow any challenge
+                    colorValid = true;
+                }
+                
                 const typeValid = isMultiMode ? 
                     (c.type === 'multi' || c.type === 'none') : 
                     (c.type === 'daily' || c.type === 'none');
@@ -707,10 +782,10 @@
             });
 
             console.log(`Found ${validChallenges.length} valid challenges after initial filtering`);
-                        
+                            
             if (validChallenges.length === 0) {
                 console.warn('❌ No valid challenges found - using fallback');
-                return { id: 'fallback', text: 'Complete this challenge', difficulty: 'easy', type: 'daily' };
+                return { id: 'fallback', text: 'Free room :)', difficulty: 'easy', type: 'daily' };
             }
 
             // Priority 2: Filter out incompatible challenges
@@ -862,6 +937,60 @@
             
             return adjacents.length > 0;
         }
+        
+        function generateChallengeOption(rank, column, color, rng, forceColor = false) {
+            const isMultiMode = gameState.mode.includes('weekly');
+            
+            let validChallenges = challenges.filter(c => {
+                const rankValid = c.ranks.length === 0 || c.ranks.includes(rank);
+                const columnValid = c.columns.length === 0 || c.columns.includes(column);
+                
+                let colorValid;
+                if (forceColor && color) {
+                    colorValid = c.color === color;
+                } else if (color) {
+                    colorValid = (c.color === color);
+                } else {
+                    colorValid = true;
+                }
+                
+                const typeValid = isMultiMode ? 
+                    (c.type === 'multi' || c.type === 'none') : 
+                    (c.type === 'daily' || c.type === 'none');
+                    
+                return rankValid && columnValid && colorValid && typeValid;
+            });
+            
+            if (validChallenges.length === 0) {
+                return { id: 'fallback', text: 'Free room :)', difficulty: 'easy', type: 'daily' };
+            }
+            
+            // Filter out incompatible challenges
+            let compatibleChallenges = validChallenges.filter(c => 
+                isCompatibleChallenge(c.id, gameState.usedChallenges)
+            );
+            
+            // Try to avoid duplicates
+            let unusedChallenges = compatibleChallenges.filter(c => 
+                !gameState.usedChallenges.has(c.id)
+            );
+            
+            // Use the most restrictive set available
+            let finalChallenges;
+            if (unusedChallenges.length > 0) {
+                finalChallenges = unusedChallenges;
+            } else if (compatibleChallenges.length > 0) {
+                finalChallenges = compatibleChallenges;
+            } else if (validChallenges.length > 0) {
+                finalChallenges = validChallenges;
+            } else {
+                return { id: 'fallback', text: 'Free room :)', difficulty: 'easy', type: 'daily' };
+            }
+            
+            const challengeIndex = rng.nextInt(0, finalChallenges.length - 1);
+            const challenge = finalChallenges[challengeIndex];
+            return processChallenge(challenge, rng);
+        }
 
         // Show draft options
         function showDraftOptions(index) {
@@ -874,22 +1003,49 @@
             
             // Generate more attempts to ensure we get valid options
             for (let i = 0; i < 10; i++) {
-                const challenge = selectChallenge(7 - cell.row, cell.col + 1, cell.color, rng);
+                const challenge = generateChallengeOption(7 - cell.row, cell.col + 1, cell.color, rng);
                 attempts.push(challenge);
             }
-            
-            // Remove duplicates and take first 3
+
+            // Remove duplicates and take first 2-3 regular options
             const uniqueOptions = [];
             const seenIds = new Set();
             
             for (const attempt of attempts) {
-                if (!seenIds.has(attempt.id) && uniqueOptions.length < 3) {
+                if (!seenIds.has(attempt.id) && uniqueOptions.length < 2) {
                     seenIds.add(attempt.id);
                     uniqueOptions.push(attempt);
                 }
             }
             
-            // Fill with duplicates if needed
+            // Add random color option with 30% chance
+            if (rng.next() < 0.3) {
+                const availableColors = colors.filter(color => {
+                    // Check if there are valid challenges for this color
+                    const colorChallenges = challenges.filter(c => {
+                        const rankValid = c.ranks.length === 0 || c.ranks.includes(7 - cell.row);
+                        const columnValid = c.columns.length === 0 || c.columns.includes(cell.col + 1);
+                        const colorValid = !c.color || c.color === color;
+                        const typeValid = gameState.mode.includes('weekly') ? 
+                            (c.type === 'multi' || c.type === 'none') : 
+                            (c.type === 'daily' || c.type === 'none');
+                        return rankValid && columnValid && colorValid && typeValid;
+                    });
+                    return colorChallenges.length > 0;
+                });
+                
+                if (availableColors.length > 0) {
+                    const randomColor = availableColors[rng.nextInt(0, availableColors.length - 1)];
+                    uniqueOptions.push({
+                        id: 'random_color',
+                        text: `Random ${randomColor} challenge`,
+                        isRandomColor: true,
+                        targetColor: randomColor
+                    });
+                }
+            }
+            
+            // Fill with duplicates if needed to reach 3 options
             while (uniqueOptions.length < 3 && attempts.length > 0) {
                 uniqueOptions.push(attempts[uniqueOptions.length % attempts.length]);
             }
@@ -901,6 +1057,9 @@
             uniqueOptions.forEach((option, i) => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'draft-option';
+                if (option.isRandomColor) {
+                    optionElement.classList.add(option.targetColor);
+                }
                 optionElement.textContent = option.text;
                 optionElement.addEventListener('click', () => {
                     selectDraftOption(index, option);
@@ -913,9 +1072,20 @@
         }
 
         // Select draft option
-        function selectDraftOption(index, challenge) {
+        function selectDraftOption(index, challengeOption) {
             const cell = gameState.grid[index];
-            cell.challenge = challenge;
+            
+            if (challengeOption.isRandomColor) {
+                cell.color = challengeOption.targetColor;
+                const seed = gameState.seed + index + 'random';
+                const rng = new SeededRandom(seed);
+                cell.challenge = selectChallenge(7 - cell.row, cell.col + 1, challengeOption.targetColor, rng, true);
+            } else {
+                cell.challenge = challengeOption;
+                // Add the challenge ID to used challenges (this was already correct)
+                gameState.usedChallenges.add(challengeOption.id);
+            }
+            
             cell.isExplored = true;
             gameState.exploredCells.add(index);
             renderGrid();
@@ -931,20 +1101,21 @@
                 gameState.resources.keys--;
                 showNotification('🔑 Lock removed!');
             } else if (resource === 'dice' && cell.challenge && gameState.resources.dice > 0) {
-                const seed = gameState.seed + index + Date.now();
-                const rng = new SeededRandom(seed);
-                cell.challenge = selectChallenge(7 - row, col + 1, cell.color, rng);
-                gameState.resources.dice--;
+                showColorPicker(index);
+                //gameState.resources.dice--;
                 showNotification('🎲 Challenge rerolled!');
             } else if (resource === 'gems' && cell.challenge && gameState.resources.gems > 0) {
                 const rangeMatch = cell.challenge.text.match(/\d+/);
-                if (rangeMatch && parseInt(rangeMatch[0]) > 1) {
-                    const newValue = Math.max(1, parseInt(rangeMatch[0]) - 1);
-                    cell.challenge.text = cell.challenge.text.replace(rangeMatch[0], newValue);
-                    gameState.resources.gems--;
-                    showNotification('💎 Requirement reduced!');
-                } else {
-                    showNotification('💎 Cannot reduce further!');
+                if (rangeMatch) {
+                    const originalValue = parseInt(rangeMatch[0]);
+                    if (originalValue > 1) {
+                        const reducedValue = Math.max(1, Math.floor(originalValue * 0.7)); // Reduce by 10%
+                        cell.challenge.text = cell.challenge.text.replace(rangeMatch[0], reducedValue);
+                        gameState.resources.gems--;
+                        showNotification('💎 Requirement reduced!');
+                    } else {
+                        showNotification('💎 Cannot reduce further!');
+                    }
                 }
             } else {
                 showNotification('❌ Cannot use that here!');
@@ -1185,12 +1356,12 @@
             const days = isMulti ? (parseInt(document.getElementById('days-counter').value) || 1) : 1;
             
             const modeNames = {
-                'daily-std': 'One Day Standard',
-                'weekly-std': 'Multi Standard', 
-                'daily-draft': 'One Day Mt Holly',
-                'weekly-draft': 'Multi Mt Holly'
+                'daily-std': 'Standard Expedition',
+                'weekly-std': 'Standard Campaign', 
+                'daily-draft': 'Draft Expedition',
+                'weekly-draft': 'Draft Campaign'
             };
-            
+                        
             result += `Blue Prince ${modeNames[gameState.mode]}\n`;
             result += `Score: ${score}`;
             if (isMulti) result += ` (${days} days)`;
@@ -1216,6 +1387,76 @@
             navigator.clipboard.writeText(result).then(() => {
                 showNotification('📋 Result shared to clipboard!');
             });
+        }
+
+        function showColorPicker(index) {
+            const modal = document.createElement('div');
+            modal.id = 'color-picker-modal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); display: flex; justify-content: center;
+                align-items: center; z-index: 1000;
+            `;
+            
+            const picker = document.createElement('div');
+            picker.style.cssText = `
+                background: #f3e5f5; padding: 20px; border-radius: 10px; border: 2px solid #9c27b0
+                display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            `;
+            
+            // Add color options including "no color"
+            const colorOptions = [
+                { name: 'No Color', value: '', style: 'background: #f0f0f0; border: 2px solid #ccc;' },
+                { name: 'Yellow', value: 'yellow', style: 'background: #ffeb3b;' },
+                { name: 'Blue', value: 'blue', style: 'background: #2196f3;' },
+                { name: 'Green', value: 'green', style: 'background: #4caf50;' },
+                { name: 'Red', value: 'red', style: 'background: #f44336;' },
+                { name: 'Orange', value: 'orange', style: 'background: #ff9800;' },
+                { name: 'Purple', value: 'purple', style: 'background: #9c27b0;' }
+            ];
+            
+            colorOptions.forEach(color => {
+                const btn = document.createElement('button');
+                btn.textContent = color.name;
+                btn.style.cssText = `${color.style} padding: 10px; border: none; border-radius: 5px; cursor: pointer;`;
+                btn.addEventListener('click', () => {
+                    rerollWithColor(index, color.value);
+                    document.body.removeChild(modal);
+                });
+                picker.appendChild(btn);
+            });
+            
+            modal.appendChild(picker);
+            document.body.appendChild(modal);
+        }
+
+        // Reroll challenge with selected color
+        function rerollWithColor(index, selectedColor) {
+            const cell = gameState.grid[index];
+
+            // Remove the old challenge ID from used challenges
+            if (cell.challenge && cell.challenge.id) {
+                gameState.usedChallenges.delete(cell.challenge.id);
+            }
+
+            cell.color = selectedColor;
+            
+            const seed = gameState.seed + index + Date.now();
+            const rng = new SeededRandom(seed);
+            cell.challenge = selectChallenge(7 - cell.row, cell.col + 1, selectedColor, rng);
+            
+            // Don't delete the new challenge ID - selectChallenge already added it
+            
+            gameState.resources.dice--;
+            showNotification('🎲 Challenge rerolled with color!');
+            
+            gameState.selectedResource = null;
+            document.querySelectorAll('.resource-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            updateResourceDisplay();
+            renderGrid();
         }
 
         
@@ -1266,6 +1507,14 @@
             // Share button
             document.getElementById('share-btn').addEventListener('click', shareResult);
 
+            document.getElementById('daily-seed-toggle').addEventListener('change', (e) => {
+                useRandomSeed = !e.target.checked;
+                if (useRandomSeed) {
+                    randomSeed = Math.random().toString(36).substring(7);
+                }
+            });
+        
+
             // Initialize first game
             initGame();
         });
@@ -1283,6 +1532,11 @@
                 document.getElementById(`${resource}-btn`).classList.add('selected');
             }
         }
+
+        //rename to Daily Prince
+        //Make help menu in top corner book emoji, named drafting strategy vol 6. Explains the rules specific to the mode you are on.
+        //Rename modes: Standard the same daily -> Single-run  multi -> Campaign   Mt Holly Draft -> Draft
+        // SO it would be like Standard Expedition, Standard Campaign, Draft Expedition, Draft Campaign
     </script>
 </body>
 </html>

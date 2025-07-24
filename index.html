@@ -713,7 +713,7 @@
             // Easy challenges Daily
             { id: 'draft_purple', text: "Draft {2:4} purple rooms", ranks: [3,4,5], columns: [], color: 'purple', difficulty: 'easy', type: 'none' },
             { id: 'draft_yellow', text: "Draft {2:4} shop rooms", ranks: [3,4,5], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
-            { id: 'draft_blue', text: "Draft {4:8} blue rooms", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
+            { id: 'draft_blue', text: "Draft {4:8} blue rooms", ranks: [1,2,3,4,5], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
             { id: 'draft_red', text: "Draft {2:4} red rooms", ranks: [1,2,3,4,5], columns: [], color: 'red', difficulty: 'easy', type: 'none' },
             { id: 'draft_green', text: "Draft {2:4} green rooms", ranks: [1,2,3,4,5], columns: [], color: 'green', difficulty: 'easy', type: 'none' },
             { id: 'keys_at_once_1', text: "Have {3:6} standard keys at once", ranks: [1,2,3,4], columns: [], color: 'orange', difficulty: 'easy', type: 'daily' },
@@ -731,7 +731,7 @@
             { id: 'draft_rare_3', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'draft_rare_4', text: "Draft {rare_room}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'inventory_items_1', text: "Have {3:5} inventory items", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'daily' },
-            { id: 'use_terminal_1', text: "Use a terminal", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
+            { id: 'use_terminal_1', text: "Use a terminal", ranks: [1,2,3,4,5,6,7], columns: [], color: 'blue', difficulty: 'easy', type: 'none' },
             { id: 'buy_shop_1', text: "Buy something from a shop room", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
             { id: 'unlock_doors', text: "Unlock {2:4} locked doors", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
             { id: 'chain_locked', text: "Open {2:3} locked doors in a  row", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
@@ -739,18 +739,14 @@
             { id: 'spot_drawing', text: "Find a drawing of a {drawings}", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
             { id: 'check_time', text: "Wait until {1:4}pm", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'easy', type: 'none' },
             { id: 'windows', text: "Look out windows in {3:5} different rooms", ranks: [2,3,4,5,6,7], columns: [1,5], color: 'red', difficulty: 'easy', type: 'none' },
-            { id: 'toss_coin', text: "Toss a coin in the fountain", ranks: [2,3,4,5], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
-            { id: 'fill_row', text: "Fill row  {1:7} of the estate with rooms all the way across", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
-            { id: 'fill_column', text: "Fill row  {1:5} of the estate with rooms all the way up", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'none' },
-
-            
-            
-            
-
-            
+            { id: 'toss_coin', text: "Toss a coin in the fountain", ranks: [1,2,3,4,5], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'fill_row_1', text: "Fill row  {1:3} of the estate with rooms all the way across", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'fill_row_2', text: "Fill row  {4:7} of the estate with rooms all the way across", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'fill_column', text: "Fill column {1:5} of the estate with rooms all the way up", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+                                             
             // Medium challenges Daily
-            { id: 'parlor_puzzle_1', text: "Complete parlor puzzle", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
-            { id: 'dartboard_puzzle_1', text: "Complete dartboard puzzle", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
+            { id: 'parlor_puzzle_1', text: "Complete parlor puzzle", ranks: [1,2,3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
+            { id: 'dartboard_puzzle_1', text: "Complete dartboard puzzle", ranks: [1,2,3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
             { id: 'upgrade_disk_1', text: "Use an upgrade disk", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
             { id: 'open_safe_1', text: "Open a safe", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'pet_dog_1', text: "Pet a dog {1:6} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
@@ -780,21 +776,22 @@
             { id: 'draft_double_orange', text: "Draft 2 hallway rooms connected to each other", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'gem_flower', text: "Collect a gem from a flower", ranks: [5,6,7], columns: [1,5], color: 'green', difficulty: 'medium', type: 'none' },
             { id: 'draft_mechanical', text: "Draft {2:3} mechanical rooms (rooms with cog icons)", ranks: [3,4,5,6,7], columns: [], color: 'green', difficulty: 'medium', type: 'none' },
-            { id: 'straight_horizontal', text: "Have a straight, unblocked horizontal path across a whole row of the estate", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
+            { id: 'straight_horizontal', text: "Have a straight, unblocked horizontal path across any row of the estate", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'blocked_doors', text: "Draft a room with {2:3} of its doors blocked", ranks: [2,3,4,5,6,7], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'multicolour', text: "Have 1 room of each colour in your estate: Red, Yellow, Green, Blue, Purple, Orange", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'tap', text: "Turn on a tap", ranks: [], columns: [4,5,6,7], color: 'green', difficulty: 'medium', type: 'none' },
-            { id: 'bananas_kitchen', text: "Purchase 5 bananas from the kitchen", ranks: [4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
+            { id: 'bananas_kitchen', text: "Purchase 5 bananas from the kitchen", ranks: [3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
             { id: 'living_animal', text: "Find a living animal in the house.", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'security', text: "Change keycard security settings.", ranks: [2,3,4,5], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'globe_spin', text: "Spin a globe.", ranks: [3,4,5,6], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'food_types', text: "Eat {2:3} different types of food.", ranks: [1,2,3,4,5,6], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'donut', text: "Draft a donut. (An empty square surrounded by rooms)", ranks: [1,2,3,4,5], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
             
             // Hard challenges Daily
             { id: 'enter_antechamber_1', text: "Enter the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none'},
             { id: 'rotate_room_1', text: "Rotate a room", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'lab_experiment_multi_1', text: "Trigger a laboratory experiment {2:5} times", ranks: [5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none'},
-            { id: 'both_wing_halls_1', text: "Have both east and west wing halls at once", ranks: [6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'none' },
+            { id: 'both_wing_halls_1', text: "Have both east and west wing halls at once", ranks: [5,6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'none' },
             { id: 'speak_alzara_1', text: "Speak with Alzara", ranks: [6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'coins_chapel_1', text: "Give {3:10} coins to chapel", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
             { id: 'rare_next_common_1', text: "Draft {rare_room} connected to {common_room}", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none' },
@@ -810,12 +807,10 @@
             { id: 'gym_steps', text: "Lose at least {4:10} steps in the gymnasium", ranks: [3,4,5,6], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
             { id: 'fail_parlor', text: "Fail the parlor puzzle", ranks: [1,2,3,4,5], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
             { id: 'weight_steps', text: "Lose at least {10:20} steps in the weight room", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
-            { id: 'lockpick', text: "Pick {1:3} locks", ranks: [], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
+            { id: 'lockpick', text: "Pick {1:2} locks", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
             { id: 'corners', text: "Draft a room in all 4 corners of the estate", ranks: [], columns: [], color: '', difficulty: 'hard', type: 'none' },
             
             
-
-
             //Easy challenges multi
             { id: 'unlock_gem_mines_1', text: "Unlock gem mines", ranks: [3,4,5,6], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'freeze_accounts_1', text: "Freeze your accounts", ranks: [3,4,5,6], columns: [], color: 'blue', difficulty: 'easy', type: 'multi' },
@@ -835,8 +830,7 @@
             { id: 'open_trunks_2', text: "Open {5:10} trunks", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'dig_times_2', text: "Dig {5:10} times", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
             { id: 'outer_rooms', text: "Draft a {outer_room} outside", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
-            
-                      
+                               
             //Medium challenges multi
             { id: 'reach_basement_1', text: "Reach the basement", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi'},
             { id: 'time_safe_1', text: "Open a time safe", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'hard', type: 'multi'},
@@ -1688,6 +1682,9 @@
                 }
                 result += '\n';
             }
+            result += '\n';
+            result += `Play game: https://samcardwell44.github.io/Mt-Holly-Daily-Challenge/`;
+            result += '\n';
             
             navigator.clipboard.writeText(result).then(() => {
                 showNotification('📋 Result shared to clipboard!');

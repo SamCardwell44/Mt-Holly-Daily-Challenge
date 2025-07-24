@@ -1,2 +1,5 @@
-Drafting strategy vol 6 (help modal)
-Secrets (Mora jai corners, reservoir? etc...)
+Secrets
+
+Save progress by seed to local storage (an array of challenges, and completed squares)
+And also resources on squares, and resources not yet used.
+Load this if it exists.

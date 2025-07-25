@@ -390,6 +390,63 @@
         box-shadow: 0 0 10px #00C07A;
     }
 
+    .email-interface {
+        max-width: 800px;
+        margin: 20px auto;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #00C07A;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+    }
+
+    #email-list {
+        flex: 1;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .email-list-item {
+        padding: 10px;
+        border: 1px solid #00C07A;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .email-list-item:hover {
+        background: rgba(0, 192, 122, 0.1);
+    }
+
+    .email-list-item.selected {
+        background: rgba(0, 192, 122, 0.2);
+    }
+
+    .email-list-item.unread {
+        border-left: 4px solid #00C07A;
+    }
+
+    .email-list-item.pinned::before {
+        content: "📌";
+        margin-right: 5px;
+    }
+
+    #email-content {
+        flex: 2;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid #00C07A;
+    }
+
+    #secrets-counter {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border: 1px solid #00C07A;
+    }
+
     .help-modal {
         position: fixed;
         top: 0;
@@ -533,80 +590,123 @@
 </style>
 </head>
 <body>
-    <button class="help-btn" id="help-btn">📖</button>
+    <button class="help-btn" id="help-btn">✉️</button>
+
+<style>
+    .help-content {
+        background: #0a0a0a;
+        border: 3px solid #00C07A;
+        padding: 0;
+        border-radius: 0;
+        max-width: 800px;
+        width: 90%;
+        max-height: 80vh;
+        box-shadow: 0 0 30px #00C07A;
+        font-family: 'Courier New', monospace;
+        color: #00C07A;
+        display: flex;
+        overflow: hidden;
+    }
+
+    .email-list {
+        width: 300px;
+        border-right: 3px solid #00C07A;
+        overflow-y: auto;
+        max-height: 80vh;
+        background: #0a0a0a;
+        box-shadow: inset 0 0 10px rgba(0, 192, 122, 0.1);
+    }
+
+    .email-list-item {
+        padding: 15px;
+        border-bottom: 2px solid #00C07A;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0;
+        border-left: 3px solid transparent;
+        position: relative;
+    }
+
+    .email-list-item:hover {
+        background: rgba(0, 192, 122, 0.1);
+        border-left: 3px solid #00C07A;
+    }
+
+    .email-list-item.selected {
+        background: rgba(0, 192, 122, 0.2);
+        border-left: 3px solid #00C07A;
+    }
+
+    .email-list-item.pinned {
+        background: #001100;
+    }
+
+    .email-content {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        max-height: 80vh;
+        background: #0a0a0a;
+        border-left: 3px solid #00C07A;
+        box-shadow: inset 0 0 15px rgba(0, 192, 122, 0.1);
+    }
+
+    .email-header {
+        border-bottom: 3px solid #00C07A;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        background: rgba(0, 192, 122, 0.05);
+        margin: -30px -30px 20px -30px;
+        padding: 30px;
+    }
+
+    .email-subject {
+        font-size: 1.8em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 5px #00C07A;
+        margin: 0;
+    }
+
+    .email-meta {
+        font-size: 0.9em;
+        margin: 5px 0 0 0;
+        color: #888;
+        border-top: 1px solid rgba(0, 192, 122, 0.3);
+        padding-top: 5px;
+        margin-top: 10px;
+    }
+
+    .email-body {
+        padding: 20px;
+        line-height: 1.6;
+        background: rgba(0, 192, 122, 0.02);
+        border: 1px solid rgba(0, 192, 122, 0.1);
+    }
+
+    .secrets-counter {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 5px 10px;
+        background: #001100;
+        border: 1px solid #00C07A;
+        font-size: 0.8em;
+        z-index: 1;
+    }
+</style>
 
 <div class="help-modal" id="help-modal">
     <div class="help-content">
         <button class="help-close" id="help-close">×</button>
+
         
-        <div class="help-header">
-            <h1 class="help-title">Drafting Strategy Vol 6</h1>
-            <p class="help-subtitle">DRAFT MANUSCRIPT - TERMINAL ACCESS ONLY</p>
+        <div class="email-list" id="email-list">
+            <!-- Email list items will be populated here -->
         </div>
 
-        <div class="help-section">
-            <h3>Game Modes</h3>
-            <div class="help-modes">
-                <div class="help-mode">
-                    <div class="help-mode-title">EXPEDITION</div>
-                    <p>Single-day completion. Complete the path in one session.</p>
-                </div>
-                <div class="help-mode">
-                    <div class="help-mode-title">CAMPAIGN</div>
-                    <p>Multi-day completion. Score penalty for additional days.</p>
-                </div>
-            </div>
-            
-            <div class="help-modes">
-                <div class="help-mode">
-                    <div class="help-mode-title">STANDARD</div>
-                    <p>All challenges visible from start. Plan your route carefully.</p>
-                </div>
-                <div class="help-mode">
-                    <div class="help-mode-title">DRAFT</div>
-                    <p>Draft challenges as you explore. Adjacent completed rooms only.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="help-section">
-            <h3>Resources</h3>
-            <span> To use a resource, click it's icon then click on the square you want to use it on.</span>
-            <div class="help-resources">
-                <div class="help-resource">
-                    <span class="help-resource-icon">🔑</span>
-                    <span><strong>KEYS:</strong> Unlock locked squares. Essential for blocked paths.</span>
-                </div>
-                <div class="help-resource">
-                    <span class="help-resource-icon">💎</span>
-                    <span><strong>GEMS:</strong> Reduce number requirements by 30% (minimum 1). Use on high-value challenges.</span>
-                </div>
-                <div class="help-resource">
-                    <span class="help-resource-icon">🎲</span>
-                    <span><strong>DICE:</strong> Reroll challenge. Select color to influence new challenge type.</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="help-section">
-            <h3>Objective</h3>
-            <p>Create a path from the lobby to the antechamber while maximizing your score.</p>
-            
-            <div class="help-scoring">
-                <h3>Scoring System</h3>
-                <p><strong>Base Score:</strong> +1 point per completed room</p>
-                <p><strong>Path Bonus:</strong> +10 points for connecting the lobby and the antechamber</p>
-                <p><strong>Campaign Mode Penalty:</strong> -1 point per day beyond the first</p>
-                <p><strong>Final Score = Completed Rooms + Path Bonus - Day Penalty</strong></p>
-            </div>
-        </div>
-
-        <div class="help-section">
-            <h3>Draft Strategy Notes</h3>
-            <p>• Use gems to make challenges easier. It will always go down by at least 1, so you can make some challenges really easy.</p>
-            <p>• Use dice to reroll challenges you cannot complete</p>
-            <p>• Color selection with dice can target specific challenge types</p>
-            <p>• Since campaign mode deducts days taken, sometimes speed can be better than perfection</p>
+        <div class="email-content" id="email-content">
+            <!-- Selected email content will be displayed here -->
         </div>
     </div>
 </div>
@@ -672,16 +772,10 @@
 
     <div class="notification" id="notification"></div>
     
-    <div class="modal" id="completion-modal">
-        <div class="modal-content">
-            <h2>🎉 Congratulations!</h2>
-            <p id="completion-message"></p>
-            <input type="number" id="days-input" placeholder="How many days did it take?" min="1" style="display:none; margin: 10px; padding: 10px; border-radius: 5px; border: none;">
-            <div>
-                <button id="copy-result-btn">Copy Result</button>
-                <button id="close-modal-btn">Close</button>
-            </div>
-        </div>
+    <div class="email-interface" style="display: none;">
+        <div id="email-list"></div>
+        <div id="email-content"></div>
+        <div id="secrets-counter">🔍 0/10 Secrets Found</div>
     </div>
     
     <div class="modal" id="draft-modal">
@@ -692,6 +786,10 @@
     </div>
 
     <script>
+        
+        //Uncomment out when testing complete
+        localStorage.clear();
+
         // Game state
         let gameState = {
             mode: 'daily-std',
@@ -703,7 +801,427 @@
             exploredCells: new Set(),
             seed: '',
             usedChallenges: new Set(),
+            stats: {
+                completedRuns: 0,
+                totalGems: 0,
+                totalKeys: 0,
+                totalDice: 0,
+                highScore: 0
+            },
+            receivedEmails: [],
+            completedPaths: new Set(),
+            emailTriggers: {
+                pathComplete: false,
+                challengeSquaresFilled: 0,
+                completedChallenges: new Set(),
+                completedTexts: new Set(),
+                colorRooms: {},
+                patterns: new Set()
+            }
         };
+
+            // Email system
+        const emailSystem = {
+            // Initialize emails in localStorage
+            init() {
+                let emailData = localStorage.getItem('blueprince_emails');
+                
+                // If no data exists, create initial structure
+                if (!emailData) {
+                    emailData = JSON.stringify({
+                        emails: [],
+
+                    });
+                    localStorage.setItem('blueprince_emails', emailData);
+                }
+                
+                // Always check for initial emails, they should persist
+                this.checkAndSendInitialEmails();
+                
+                // Update the UI immediately
+                this.updateEmailList();
+            },            // Load emails from localStorage
+            getEmails() {
+                const data = JSON.parse(localStorage.getItem('blueprince_emails'));
+                return data.emails;
+            },
+
+            // Save emails to localStorage
+            saveEmails(emails) {
+                const data = JSON.parse(localStorage.getItem('blueprince_emails'));
+                data.emails = emails;
+                data.foundSecrets = emails.filter(e => e.secret).length;
+                localStorage.setItem('blueprince_emails', JSON.stringify(data));
+            },
+
+            // Send a new email
+            sendEmail(email) {
+                const emails = this.getEmails();
+                if (!emails.find(e => e.id === email.id)) {
+                    // Create new email object
+                    const newEmail = {
+                        ...email,
+                        date: new Date().toISOString(),
+                        read: false,
+                        secret: email.secret || false,
+                        pinned: email.pinned || false
+                    };
+                    
+                    // Add to emails array
+                    emails.push(newEmail);
+                    
+                    // Sort emails (pinned first, then by date)
+                    emails.sort((a, b) => {
+                        if (a.pinned && !b.pinned) return -1;
+                        if (!a.pinned && b.pinned) return 1;
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                    
+                    this.saveEmails(emails);
+                    this.updateEmailList();
+                    
+                    // If it's a new email and not the initial emails, show a notification
+                    if (!email.pinned && email.id !== 'drafting-strategy') {
+                        showNotification('📧 New email received!');
+                    }
+                }
+            },
+
+            // Mark an email as read
+            markAsRead(emailId) {
+                const emails = this.getEmails();
+                const email = emails.find(e => e.id === emailId);
+                if (email && !email.read) {
+                    email.read = true;
+                    this.saveEmails(emails);
+                }
+            },
+
+            // Update the email list in the UI
+            updateEmailList() {
+                const emailList = document.getElementById('email-list');
+                const emails = this.getEmails();
+                
+                emailList.innerHTML = '';
+                
+                // Sort emails: pinned first, then by date descending
+                emails.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1;
+                    if (!a.pinned && b.pinned) return 1;
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+                emails.forEach(email => {
+                    const item = document.createElement('div');
+                    item.className = 'email-list-item';
+                    if (email.pinned) item.classList.add('pinned');
+                    if (!email.read) item.classList.add('unread');
+                    
+                    item.innerHTML = `
+                        <div class="subject">${email.subject}</div>
+                        <div class="date">${new Date(email.date).toLocaleDateString()}</div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        this.displayEmail(email);
+                        document.querySelectorAll('.email-list-item').forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                    });
+                    
+                    emailList.appendChild(item);
+                });
+
+                // Update secrets counter
+                const data = JSON.parse(localStorage.getItem('blueprince_emails'));
+                document.getElementById('secrets-counter').textContent = 
+                    `🔍 ${data.foundSecrets}/${data.totalSecrets} Secrets Found`;
+            },
+
+            // Display an email in the content area
+            displayEmail(email) {
+                const content = document.getElementById('email-content');
+                content.innerHTML = `
+                    <div class="email-header">
+                        <h1 class="email-subject">${email.subject}</h1>
+                        <p class="email-meta">Date: ${new Date(email.date).toLocaleDateString()}</p>
+                    </div>
+                    <div class="email-body">${email.content}</div>
+                `;
+                this.markAsRead(email.id);
+                this.updateEmailList();
+            },
+
+            // Check for and send initial emails
+            checkAndSendInitialEmails() {
+                // Send How to Play email (always pinned)
+                this.sendEmail({
+                    id: 'how-to-play',
+                    subject: 'How to Play - Mt Holly Daily Challenge',
+                    content: `
+                        <div class="email-section">
+                            <h3>Game Modes</h3>
+                            <div class="email-modes">
+                                <div class="email-mode">
+                                    <div class="email-mode-title">EXPEDITION</div>
+                                    <p>Single-day completion. Complete the path in one session.</p>
+                                </div>
+                                <div class="email-mode">
+                                    <div class="email-mode-title">CAMPAIGN</div>
+                                    <p>Multi-day completion. Score penalty for additional days.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="email-modes">
+                                <div class="email-mode">
+                                    <div class="email-mode-title">STANDARD</div>
+                                    <p>All challenges visible from start. Plan your route carefully.</p>
+                                </div>
+                                <div class="email-mode">
+                                    <div class="email-mode-title">DRAFT</div>
+                                    <p>Draft challenges as you explore. Adjacent completed rooms only.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="email-section">
+                            <h3>Resources</h3>
+                            <span>To use a resource, click its icon then click on the square you want to use it on.</span>
+                            <div class="email-resources">
+                                <div class="email-resource">
+                                    <span class="email-resource-icon">🔑</span>
+                                    <span><strong>KEYS:</strong> Unlock locked squares. Essential for blocked paths.</span>
+                                </div>
+                                <div class="email-resource">
+                                    <span class="email-resource-icon">💎</span>
+                                    <span><strong>GEMS:</strong> Reduce number requirements by 30% (minimum 1). Use on high-value challenges.</span>
+                                </div>
+                                <div class="email-resource">
+                                    <span class="email-resource-icon">🎲</span>
+                                    <span><strong>DICE:</strong> Reroll challenge. Select color to influence new challenge type.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="email-section">
+                            <h3>Objective</h3>
+                            <p>Create a path from the lobby to the antechamber while maximizing your score.</p>
+                            
+                            <div class="email-scoring">
+                                <h3>Scoring System</h3>
+                                <p><strong>Base Score:</strong> +1 point per completed room</p>
+                                <p><strong>Path Bonus:</strong> +10 points for connecting the lobby and the antechamber</p>
+                                <p><strong>Campaign Mode Penalty:</strong> -1 point per day beyond the first</p>
+                                <p><strong>Final Score = Completed Rooms + Path Bonus - Day Penalty</strong></p>
+                            </div>
+                        </div>`,
+                    pinned: true
+                });
+
+                // Send Drafting Strategy email if it's the first time
+                if (!this.getEmails().find(e => e.id === 'drafting-strategy')) {
+                    this.sendEmail({
+                        id: 'drafting-strategy',
+                        subject: 'Drafting Strategy Vol. 6 - DRAFT FOR REVIEW',
+                        content: `
+                        <div class="email-section">
+                            <h3>Draft Strategy Notes</h3>
+                            <p>• Use gems to make challenges easier. It will always go down by at least 1, so you can make some challenges really easy.</p>
+                            <p>• Use dice to reroll challenges you cannot complete</p>
+                            <p>• Color selection with dice can target specific challenge types</p>
+                            <p>• Since campaign mode deducts days taken, sometimes speed can be better than perfection</p>
+
+                            <h3>Color Strategies</h3>
+                            <p>Each color has its own strengths. Here's a quick guide:</p>
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>🟨 <strong>Yellow (Shop)</strong> - Shopping and gold</li>
+                                <li>🟦 <strong>Blue (Tech)</strong> - Blue rooms and mechanical</li>
+                                <li>🟩 <strong>Green (Nature)</strong> - Gems and gardens</li>
+                                <li>🟥 <strong>Red (Action)</strong> - Red rooms and penalties</li>
+                                <li>🟧 <strong>Orange (Utility)</strong> - Keys and pathways</li>
+                                <li>🟪 <strong>Purple (Mystery)</strong> - Steps and bedrooms</li>
+                            </ul>
+                        </div>
+
+                        <div class="email-section">
+                            <h3>Path Planning</h3>
+                            <p>When drafting, consider these factors:</p>
+                            <p>1. Resource availability - Can you get keys/gems early?</p>
+                            <p>2. Challenge difficulty - Harder challenges near the start give more time</p>
+                            <p>3. Color synergy - Some challenges work better together</p>
+                        </div>`,
+                        secret: true
+                    });
+                }
+            }
+        };
+
+        
+
+        // Save game state to local storage
+        function saveGameState() {
+            const saveState = {
+                mode: gameState.mode,
+                grid: gameState.grid.map(cell => ({
+                    ...cell,
+                    // Convert Sets to arrays for JSON serialization
+                    exploredCells: Array.from(gameState.exploredCells),
+                    usedChallenges: Array.from(gameState.usedChallenges)
+                })),
+                resources: gameState.resources,
+                completedPath: gameState.completedPath,
+                isComplete: gameState.isComplete,
+                seed: gameState.seed,
+                receivedEmails: gameState.receivedEmails,
+                completedPaths: Array.from(gameState.completedPaths),
+                emailTriggers: {
+                    ...gameState.emailTriggers,
+                    completedChallenges: Array.from(gameState.emailTriggers.completedChallenges),
+                    completedTexts: Array.from(gameState.emailTriggers.completedTexts),
+                    patterns: Array.from(gameState.emailTriggers.patterns)
+                }
+            };
+            const key = `blueprince_${gameState.mode}_${gameState.seed}`;
+            localStorage.setItem(key, JSON.stringify(saveState));
+        }
+
+        // Load game state from local storage
+        function loadGameState(mode, seed) {
+            const key = `blueprince_${mode}_${seed}`;
+            const savedState = localStorage.getItem(key);
+            
+            if (savedState) {
+                const parsed = JSON.parse(savedState);
+                gameState.mode = parsed.mode;
+                gameState.grid = parsed.grid;
+                gameState.resources = parsed.resources;
+                gameState.completedPath = parsed.completedPath;
+                gameState.isComplete = parsed.isComplete;
+                gameState.seed = parsed.seed;
+                
+                // Reconstruct Sets from arrays
+                gameState.exploredCells = new Set(parsed.grid[0].exploredCells);
+                gameState.usedChallenges = new Set(parsed.grid[0].usedChallenges);
+                
+                // Load email state
+                gameState.receivedEmails = parsed.receivedEmails || [];
+                gameState.completedPaths = new Set(parsed.completedPaths || []);
+                
+                // Load email triggers
+                if (parsed.emailTriggers) {
+                    gameState.emailTriggers = {
+                        ...parsed.emailTriggers,
+                        completedChallenges: new Set(parsed.emailTriggers.completedChallenges || []),
+                        completedTexts: new Set(parsed.emailTriggers.completedTexts || []),
+                        patterns: new Set(parsed.emailTriggers.patterns || [])
+                    };
+                }
+                
+                return true;
+            }
+            return false;
+        }
+
+        // Check for email triggers
+        function checkEmailTriggers() {
+            // Count challenge squares filled
+            const filledSquares = gameState.grid.filter(cell => cell.isCompleted && !cell.isLobby && !cell.isGoal).length;
+            
+            // All challenge squares filled email
+            if (filledSquares >= 33 && !gameState.emailTriggers.challengeSquaresFilled) {
+                emailSystem.sendEmail({
+                    id: 'all-squares-filled',
+                    subject: '🏆 A full house!',
+                    content: `
+                    <div class="email-section">
+                        <p>Fascinating development!</p>
+                        <p>Our sensors indicate you've managed to map every single room in your current layout. This is exactly the kind of thorough exploration data we need!</p>
+                        <p>The estate's architecture has always been... fluid, shall we say? But having a complete snapshot like this is invaluable for our research.</p>
+                        <p>Do keep exploring different configurations when you can.</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.challengeSquaresFilled = true;
+            }
+
+            // Count rooms of each color
+            const colorCounts = {};
+            gameState.grid.forEach(cell => {
+                if (cell.color && cell.isCompleted) {
+                    colorCounts[cell.color] = (colorCounts[cell.color] || 0) + 1;
+                }
+            });
+
+            // Check for color-based achievements
+            Object.entries(colorCounts).forEach(([color, count]) => {
+                if (count >= 4 && !gameState.emailTriggers.colorRooms[color]) {
+                    emailSystem.sendEmail({
+                        id: `${color}-rooms-5`,
+                        subject: `🎨 Colourful ideas`,
+                        content: `
+                        <div class="email-section">
+                            <p>I saw you had a lot of colour rooms in your draft, that's great for our data.</p>
+                            <p>In some ways, the colours remind me of the Mora Jai puzzles Herbert loved so much.</p>
+                            <p>Maybe that's why he insisted we include the coloured squares in this program...</p>
+                            <p>Keep experimenting!</p>
+                            <p>- Randolph</p>
+                        </div>`
+                    });
+                    gameState.emailTriggers.colorRooms[color] = true;
+                }
+            });
+
+            // Check for specific challenge text completions
+            gameState.grid.forEach(cell => {
+                if (cell.isCompleted && cell.challenge && cell.challenge.text) {
+                    // Check for specific challenge texts
+                    if (cell.challenge.text.toLowerCase().includes('mail room') && 
+                        !gameState.emailTriggers.completedTexts.has('mail-room')) {
+                        emailSystem.sendEmail({
+                            id: 'mail-room-discovered',
+                            subject: "📬 You've got mail",
+                            content: `
+                            <div class="email-section">
+                                <h3>We saw you completed a mail room challenge.</h3>
+                                <p>That's the primary way we can communicate with anyone at Mt. Holly</p>
+                                <p>Of course now we have you set up on here, so we can speak to you at any time! It's much easier.</p>
+                                <p>- Randolph</p>
+                            </div>`
+                        });
+                        gameState.emailTriggers.completedTexts.add('mail-room');
+                    }
+                }
+            });
+
+            // Check for patterns (e.g., completed squares in a specific shape)
+            const checkPattern = (name, pattern) => {
+                if (!gameState.emailTriggers.patterns.has(name)) {
+                    let found = true;
+                    pattern.forEach(([row, col]) => {
+                        const index = row * 5 + col;
+                        if (!gameState.grid[index] || !gameState.grid[index].isCompleted) {
+                            found = false;
+                        }
+                    });
+                    if (found) {
+                        emailSystem.sendEmail({
+                            id: `pattern-${name}`,
+                            subject: `🎯 Pattern Discovered: ${name}`,
+                            content: `
+                            <div class="email-section">
+                                <h3>Hidden Pattern Found</h3>
+                                <p>You've discovered a secret pattern in the estate's layout!</p>
+                                <p>Keep exploring to find more patterns.</p>
+                            </div>`
+                        });
+                        gameState.emailTriggers.patterns.add(name);
+                    }
+                }
+            };
+
+            // Example patterns to check
+            //checkPattern('cross', [[2,2], [1,2], [3,2], [2,1], [2,3]]);
+            //checkPattern('square', [[1,1], [1,2], [2,1], [2,2]]);
+        }
 
         let useRandomSeed = false;
         let randomSeed = Math.random().toString(36).substring(7);
@@ -877,29 +1395,22 @@
              "drawing room", "library", "rumpus room", "vault", "trophy room", "attic", "gallery"
         ];
 
-        const roomTypes = [
-            "shop", "garden", "red", "blue", "mechanical", "hallway", "bedroom"
-        ];
+        // Game configuration data
+        const roomTypes = ["shop", "garden", "red", "blue", "mechanical", "hallway", "bedroom"];
 
-        const foodTypes = [
-            "apple", "turnip", "orange", "banana"
-
-        ];
+        const foodTypes = ["apple", "turnip", "orange", "banana"];
 
         const items = [
-            "compass", "magnifying glass", "coin purse", "rabbit's foot", "metal detector", "shovel" , "sledgehammer", "broken lever",
+            "compass", "magnifying glass", "coin purse", "rabbit's foot", "metal detector", "shovel", "sledgehammer", "broken lever",
             "lockpick", "battery pack", "watering can", "keycard", "secret garden key", "car keys", "silver key", "sleeping mask", "salt shaker",
             "wind-up key", "running shoes"
-
         ];
 
-        const craftedItems= [
+        const craftedItems = [
             "lucky purse", "powered electromagnet", "Dowsing rod", "power hammer", "pick sound amplifier", "detector shovel", "jack hammer", "burning glass"
-
         ];
-       
 
-        const estateSize= [
+        const estateSize = [
             "Abandoned Project (Less than 5 rooms)", "Humble Bungalow (Between 5-10 rooms)", "Charming Cottage (Between 10-20 rooms)", 
             "Respectable Villa (Between 20-30 rooms)", "Impressive Manor (30-40 Rooms)", "Opulent Chateau (40+ rooms)"
         ];
@@ -949,12 +1460,24 @@
             return true;
         }
 
-        // Seeded random number generator
+        /**
+         * A deterministic random number generator that produces the same sequence of numbers
+         * for a given seed, ensuring consistent game generation across sessions.
+         */
         class SeededRandom {
+            /**
+             * Creates a new seeded random number generator
+             * @param {string|number} seed - The seed value to initialize the RNG
+             */
             constructor(seed) {
                 this.seed = this.hashCode(seed.toString());
             }
             
+            /**
+             * Generates a hash code from a string
+             * @param {string} str - String to hash
+             * @returns {number} A 32-bit positive integer hash
+             */
             hashCode(str) {
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
@@ -965,15 +1488,30 @@
                 return Math.abs(hash);
             }
             
+            /**
+             * Generates the next random number in the sequence
+             * @returns {number} A number between 0 and 1
+             */
             next() {
                 this.seed = (this.seed * 9301 + 49297) % 233280;
                 return this.seed / 233280;
             }
             
+            /**
+             * Generates a random integer within a range
+             * @param {number} min - Minimum value (inclusive)
+             * @param {number} max - Maximum value (inclusive)
+             * @returns {number} A random integer between min and max
+             */
             nextInt(min, max) {
                 return Math.floor(this.next() * (max - min + 1)) + min;
             }
             
+            /**
+             * Shuffles an array in-place
+             * @param {Array} array - The array to shuffle
+             * @returns {Array} The shuffled array
+             */
             shuffle(array) {
                 const shuffled = [...array];
                 for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1165,7 +1703,7 @@
                             
             if (validChallenges.length === 0) {
                 console.warn('❌ No valid challenges found - using fallback');
-                return { id: 'fallback', text: 'Free room :)', difficulty: 'easy', type: 'daily' };
+                return { id: 'fallback', text: 'No challenges - Free room', difficulty: 'easy', type: 'daily' };
             }
 
             // Priority 2: Filter out incompatible challenges
@@ -1318,40 +1856,48 @@
             return adjacents.length > 0;
         }
         
-        function generateChallengeOption(rank, column, color, rng, forceColor = false) {
+        /**
+         * Common logic for challenge filtering and selection
+         * @param {number} rank - The rank position 
+         * @param {number} column - The column position
+         * @param {string} color - The color constraint
+         * @param {boolean} forceColor - Whether to enforce color matching
+         * @returns {Array} Array of valid challenges
+         */
+        function filterChallenges(rank, column, color, forceColor = false) {
             const isMultiMode = gameState.mode.includes('weekly');
             
-            let validChallenges = challenges.filter(c => {
-                const rankValid = c.ranks.length === 0 || c.ranks.includes(rank);
-                const columnValid = c.columns.length === 0 || c.columns.includes(column);
-                
-                let colorValid;
-                if (forceColor && color) {
-                    colorValid = c.color === color;
-                } else if (color) {
-                    colorValid = (c.color === color);
-                } else {
-                    colorValid = true;
-                }
-                
+            return challenges.filter(c => {
+                const rankValid = !c.ranks.length || c.ranks.includes(rank);
+                const columnValid = !c.columns.length || c.columns.includes(column);
+                const colorValid = forceColor ? 
+                    (!color || c.color === color) : 
+                    (!color || !c.color || c.color === color);
                 const typeValid = isMultiMode ? 
                     (c.type === 'multi' || c.type === 'none') : 
                     (c.type === 'daily' || c.type === 'none');
                     
                 return rankValid && columnValid && colorValid && typeValid;
             });
+        }
+
+        /**
+         * Generates a challenge option for draft mode
+         */
+        function generateChallengeOption(rank, column, color, rng, forceColor = false) {
+            const validChallenges = filterChallenges(rank, column, color, forceColor);
             
-            if (validChallenges.length === 0) {
+            if (!validChallenges.length) {
                 return { id: 'fallback', text: 'Free room :)', difficulty: 'easy', type: 'daily' };
             }
             
             // Filter out incompatible challenges
-            let compatibleChallenges = validChallenges.filter(c => 
+            const compatibleChallenges = validChallenges.filter(c => 
                 isCompatibleChallenge(c.id, gameState.usedChallenges)
             );
             
             // Try to avoid duplicates
-            let unusedChallenges = compatibleChallenges.filter(c => 
+            const unusedChallenges = compatibleChallenges.filter(c => 
                 !gameState.usedChallenges.has(c.id)
             );
             
@@ -1469,6 +2015,7 @@
             cell.isExplored = true;
             gameState.exploredCells.add(index);
             renderGrid();
+            saveGameState();
         }
 
         // Handle resource use
@@ -1508,6 +2055,7 @@
             
             updateResourceDisplay();
             renderGrid();
+            saveGameState();
         }
 
         // Complete cell
@@ -1532,6 +2080,8 @@
             updateResourceDisplay();
             updateScoreDisplay();
             renderGrid();
+            checkEmailTriggers();
+            saveGameState();
         }
 
         // Check win condition
@@ -1543,11 +2093,51 @@
                 gameState.isComplete = true;
                 gameState.completedPath = path;
 
-                // Only show modal if:
-                // - the game was not complete before
-                // - and the triggered cell is part of the new path
+                // Only update stats and show modal if this is a new completion
                 if (wasIncomplete && triggeredIndex !== null && path.includes(triggeredIndex)) {
-                    showCompletionModal();
+                    // Update stats
+                    gameState.stats.completedRuns++;
+                    gameState.stats.totalGems += gameState.resources.gems;
+                    gameState.stats.totalKeys += gameState.resources.keys;
+                    gameState.stats.totalDice += gameState.resources.dice;
+                    
+                    const currentScore = calculateScore();
+                    if (currentScore > gameState.stats.highScore) {
+                        gameState.stats.highScore = currentScore;
+                    }
+                    
+                    // Save stats to localStorage
+                    localStorage.setItem('blueprince_stats', JSON.stringify(gameState.stats));
+                    
+                    // Record this path completion
+                    gameState.completedPaths.add(gameState.seed);
+                    
+                    // Show notification instead of modal
+                    showNotification('🎉 Path Complete! +10 points');
+                    
+                    // Check for first-time path completion email
+                    if (!gameState.emailTriggers.pathComplete) {
+                        emailSystem.sendEmail({
+                            id: 'first-path-complete',
+                            subject: '🎉 First Path Completed!',
+                            content: `
+                            <div class="email-section">
+                                <h3>Welcome to the SYNKA Algorithm Project.</h3>
+                                <p>Randolph Moore here from SYNKA! I wanted to personally congratulate you on completing your first successful navigation of Mt Holly.</p>
+                                <p>Your path data has been added to our algorithmic analysis program. Every unique route you discover helps us better understand the estate's shifting nature.</p>
+                                <p>I've been working here for over a decade alongside Herbert, and I must say, it's refreshing to see new approaches to exploration.</p>
+                                <p>Keep up the excellent work!</p>
+                                <p>Best regards,<br>Randolph Moore<br>Head Lab Technician, SYNKA</p>
+                                <p></p>
+                                <p>Your current stats:</p>
+                                <ul>
+                                    <li>Paths Completed: ${gameState.stats.completedRuns}</li>
+                                    <li>High Score: ${gameState.stats.highScore}</li>
+                                </ul>
+                            </div>`
+                        });
+                        gameState.emailTriggers.pathComplete = true;
+                    }
                 }
             } else {
                 gameState.isComplete = false;
@@ -1615,21 +2205,7 @@
         }
 
         // Show completion modal
-        function showCompletionModal() {
-            const modal = document.getElementById('completion-modal');
-            const message = document.getElementById('completion-message');
-            const daysInput = document.getElementById('days-input');
-            
-            if (gameState.mode.includes('weekly')) {
-                message.textContent = 'Path complete! How many days did it take?';
-                daysInput.style.display = 'block';
-            } else {
-                message.textContent = 'Daily challenge completed!';
-                daysInput.style.display = 'none';
-            }
-            
-            modal.style.display = 'flex';
-        }
+        // Show path completion notification handled in checkWinCondition()
 
         // Copy result to clipboard
         function copyResult() {
@@ -1709,15 +2285,68 @@
         }
 
         // Initialize game
-        function initGame() {
+        function clearSavedGame(mode, seed) {
+            const key = `blueprince_${mode}_${seed}`;
+            localStorage.removeItem(key);
+        }
+
+        /**
+         * Initialize or reset the game state
+         * @param {boolean} forceNew - Whether to force a new game even if saved state exists
+         */
+        function initGame(forceNew = false) {
+            const seed = getSeed();
+            
+            // Load saved stats
+            const savedStats = localStorage.getItem('blueprince_stats');
+            if (savedStats) {
+                gameState.stats = JSON.parse(savedStats);
+            }
+            
+            // Try loading saved state first
+            if (!forceNew && loadGameState(gameState.mode, seed)) {
+                updateDisplays();
+                return;
+            }
+            
+            // Clear any existing saved game
+            clearSavedGame(gameState.mode, seed);
+            
+            // Reset game state
+            resetGameState();
+            
+            // Configure UI for game mode
+            configureGameMode();
+            
+            // Initialize email system
+            emailSystem.init();
+            
+            // Generate new game grid
+            generateGrid();
+
+            const lobbyCellIndex = gameState.grid.findIndex(cell => cell.isLobby);
+            if (lobbyCellIndex !== -1) {
+                gameState.grid[lobbyCellIndex].isCompleted = true;
+            }
+            updateDisplays();
+        }
+
+        /**
+         * Reset all game state to initial values
+         */
+        function resetGameState() {
             gameState.resources = { gems: 0, keys: 0, dice: 0 };
             gameState.selectedResource = null;
             gameState.completedPath = [];
             gameState.isComplete = false;
             gameState.exploredCells = new Set();
-            gameState.usedChallenges = new Set(); // Add this line
-            
-            // Show/hide days control based on mode
+            gameState.usedChallenges = new Set();
+        }
+
+        /**
+         * Configure UI elements based on game mode
+         */
+        function configureGameMode() {
             const daysControl = document.getElementById('days-control');
             if (gameState.mode.includes('weekly')) {
                 daysControl.style.display = 'block';
@@ -1725,18 +2354,20 @@
             } else {
                 daysControl.style.display = 'none';
             }
-            
-            generateGrid();
-
-            const lobbyCellIndex = gameState.grid.findIndex(cell => cell.isLobby);
-            if (lobbyCellIndex !== -1) {
-                gameState.grid[lobbyCellIndex].isCompleted = true;
-            }
-            renderGrid();
-            updateResourceDisplay();
-            updateScoreDisplay(); // Add this line
         }
 
+        /**
+         * Update all game displays
+         */
+        function updateDisplays() {
+            renderGrid();
+            updateResourceDisplay();
+            updateScoreDisplay();
+        }
+
+        /**
+         * Calculate the current game score
+         */
         function calculateScore() {
             const completedCount = gameState.grid.filter(cell => cell.isCompleted).length;
             const hasPath = gameState.isComplete ? 10 : 0; 
@@ -1880,6 +2511,9 @@
         
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize email system
+            emailSystem.init();
+            
             // Mode selection
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -1910,14 +2544,7 @@
             });
 
             // New game button
-            document.getElementById('new-game-btn').addEventListener('click', initGame);
-
-            // Modal buttons
-            document.getElementById('copy-result-btn').addEventListener('click', copyResult);
-            
-            document.getElementById('close-modal-btn').addEventListener('click', () => {
-                document.getElementById('completion-modal').style.display = 'none';
-            });
+            document.getElementById('new-game-btn').addEventListener('click', () => initGame(true));
 
             // Days counter for multi modes
             document.getElementById('days-counter').addEventListener('input', updateScoreDisplay);
@@ -1925,13 +2552,7 @@
             // Share button
             document.getElementById('share-btn').addEventListener('click', copyResult);
 
-            document.getElementById('daily-seed-toggle').addEventListener('change', (e) => {
-                useRandomSeed = !e.target.checked;
-                if (useRandomSeed) {
-                    randomSeed = Math.random().toString(36).substring(7);
-                }
-            });
-
+            // Handle seed toggle changes
             document.getElementById('daily-seed-toggle').addEventListener('change', (e) => {
                 useRandomSeed = !e.target.checked;
                 const manualContainer = document.getElementById('manual-seed-container');

@@ -1287,7 +1287,7 @@
             { id: 'chain_gems', text: "Draft {2:3} rooms with a gem cost in a row", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'none' },
             { id: 'spot_drawing', text: "Find a drawing of a {drawings}", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
             { id: 'check_time', text: "Wait until {1:4}pm", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'easy', type: 'none' },
-            { id: 'windows', text: "Look out windows in {3:5} different rooms", ranks: [2,3,4,5,6,7], columns: [1,5], color: 'red', difficulty: 'easy', type: 'none' },
+            { id: 'windows', text: "Look out windows in {3:5} different rooms", ranks: [], columns: [1,5], color: 'orange', difficulty: 'easy', type: 'none' },
             { id: 'toss_coin', text: "Toss a coin in the fountain", ranks: [1,2,3,4,5], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
             { id: 'fill_row_1', text: "Fill row  {1:3} of the estate with rooms all the way across", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'fill_row_2', text: "Fill row  {4:7} of the estate with rooms all the way across", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
@@ -1335,6 +1335,10 @@
             { id: 'globe_spin', text: "Spin a globe.", ranks: [3,4,5,6], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'food_types', text: "Eat {2:3} different types of food.", ranks: [1,2,3,4,5,6], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'donut', text: "Draft a donut. (An empty square surrounded by rooms)", ranks: [1,2,3,4,5], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'reroll_multi', text: "Reroll the same draw {2:3} time", ranks: [3,4,5], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'car_unlock', text: "Unlock the trunk of a car.", ranks: [], columns: [1,2], color: 'yellow', difficulty: 'medium', type: 'none' },
+            { id: 'red_letter_1', text: "Read {1:2} red letters", ranks: [], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
+            { id: 'security_doors', text: "Bypass {1:2} security doors", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'none' },
             
             // Hard challenges Daily
             { id: 'enter_antechamber_1', text: "Enter the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none'},
@@ -1358,6 +1362,8 @@
             { id: 'weight_steps', text: "Lose at least {10:20} steps in the weight room", ranks: [5,6,7], columns: [], color: 'red', difficulty: 'hard', type: 'none' },
             { id: 'lockpick', text: "Pick {1:2} locks", ranks: [3,4,5,6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
             { id: 'corners', text: "Draft a room in all 4 corners of the estate", ranks: [], columns: [], color: '', difficulty: 'hard', type: 'none' },
+            { id: 'multi_shop', text: "Buy something from {2:4} different shops", ranks: [2,3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'hard', type: 'none' },
+            { id: 'dining_bonus', text: "Gain the bonus steps from the dining room meal.", ranks: [4,5,6,7], columns: [], color: 'orange', difficulty: 'hard', type: 'none' },
             
             
             //Easy challenges multi
@@ -1373,12 +1379,13 @@
             { id: 'two_items_once_1', text: "Have {item} and {item} at the same time", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'keys_at_once_2', text: "Have {8:20} standard keys at once", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'multi' },
             { id: 'gems_at_once_2', text: "Have {10:20} gems at once", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
-            { id: 'coins_at_once_2', text: "Have {50:120} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'multi' },
+            { id: 'coins_at_once_2', text: "Have  {50:120} coins at once", ranks: [], columns: [], color: 'yellow', difficulty: 'easy', type: 'multi' },
             { id: 'ivory_dice_2', text: "Have {4:8} ivory dice at once", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'eat_food_2', text: "Eat {5:10} {foodtype}", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'open_trunks_2', text: "Open {5:10} trunks", ranks: [], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'dig_times_2', text: "Dig {5:10} times", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
             { id: 'outer_rooms', text: "Draft a {outer_room} outside", ranks: [], columns: [], color: 'green', difficulty: 'easy', type: 'multi' },
+            { id: 'red_letter_2', text: "Read {3:5} red letters", ranks: [], columns: [], color: 'red', difficulty: 'medium', type: 'multi' },
                                
             //Medium challenges multi
             { id: 'reach_basement_1', text: "Reach the basement", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi'},
@@ -1399,7 +1406,8 @@
             { id: 'draft_room_in_square', text: "Draft {common_room} in this position on your map.", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'multi' },
             { id: 'mora_jai', text: "Complete a mora jai puzzle box", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'multi' },
             { id: 'reach_stars', text: "Have {3:10} stars", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'multi' },
-
+            { id: 'empty_water', text: "Empty a watering can", ranks: [], columns: [], color: 'green', difficulty: 'medium', type: 'multi' },
+            
             //Hard challenges multi
             { id: 'west_gate_path_1', text: "Unlock West Gate Path", ranks: [6,7], columns: [1], color: '', difficulty: "hard", type: "multi" },
             { id: 'drain_reservoir_1', text: "Drain the reservoir", ranks: [6,7], columns: [], color: 'blue', difficulty: "hard", type: "multi" },

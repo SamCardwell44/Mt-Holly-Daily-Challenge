@@ -1252,7 +1252,58 @@
             // Example patterns to check
             //checkPattern('cross', [[2,2], [1,2], [3,2], [2,1], [2,3]]);
             //checkPattern('square', [[1,1], [1,2], [2,1], [2,2]]);
-        }
+
+            //Check for beeline to end using pattern (only middle row filled)
+                        
+
+            //Loop pattern round edges email
+            
+            //Draft mode path completed
+            
+
+            //Campaign mode 10 days spent
+            
+
+
+            //5 gems at once
+            if (gameState.resources.gems >= 5 && !gameState.emailTriggers.patterns.has('five-gems')) {
+                emailSystem.sendEmail({
+                    id: 'five-gems',
+                    subject: '💎 Crown of gems',
+                    content: `
+                    <div class="email-section">
+                        <p>We've just received a signal that you've gathered five gems at once. Extraordinary.</p>
+                        <p>Gathering them in such numbers suggests you’re either very lucky or the estate is beginning to recognize you.</p>
+                        <p>Herbert always disappproved of using them to make challenges easier. I could never complete a path without them. </p>
+                        <p>I miss our fireside chats about this app, he would have loved to have seen it completed.</p>
+                        <p>- Randolph</p>
+                        </div>`
+                });
+                gameState.emailTriggers.patterns.add('five-gems');
+            }
+
+            //5 dice at once email
+            if (gameState.resources.dice >= 5 && !gameState.emailTriggers.patterns.has('five-dice')) {
+                emailSystem.sendEmail({
+                    id: 'five-dice',
+                    subject: '🎲 High roller',
+                    content: `
+                    <div class="email-section">
+                        <h3>Die collector</h3>
+                        <p>Five dice at once? Not bad.</p>
+                        <p>In the old labs, Herbert would say the dice were “the estate’s way of choosing its next move.” They appeared randomly, but always with intention.</p>
+                        <p>Now that you've gathered five, don’t squander them!</p>
+                        <p>We'll keep monitoring your trajectory with interest.</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('five-dice');
+            }
+            
+            //Custom seed used (not the daily seed)
+           
+
+    }
 
         let useRandomSeed = false;
         let randomSeed = Math.random().toString(36).substring(7);

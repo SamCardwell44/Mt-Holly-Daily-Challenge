@@ -1146,7 +1146,7 @@
             // Count rooms of each color
             const colorCounts = {};
             gameState.grid.forEach(cell => {
-                if (cell.color && cell.isCompleted) {
+                if (cell.color) {
                     colorCounts[cell.color] = (colorCounts[cell.color] || 0) + 1;
                 }
             });
@@ -1191,6 +1191,37 @@
                     }
                 }
             });
+
+            //Check for the same colour in all 4 corners
+            const corners = [
+                { row: 0, col: 0 },
+                { row: 0, col: 4 },
+                { row: 4, col: 0 },
+                { row: 4, col: 4 }
+            ];
+            const cornerColors = corners.map(corner => {
+                const index = corner.row * 5 + corner.col;
+                return gameState.grid[index] ? gameState.grid[index].color : null;
+            });
+            const uniqueColors = new Set(cornerColors);
+
+            //Not working yet, but will be used to trigger an email when all corners are the same colour
+            if (uniqueColors.size === 1 && cornerColors[0] && !gameState.emailTriggers.patterns.has('corner-color')) {
+                emailSystem.sendEmail({
+                    id: 'corner-color',
+                    subject: 'Mora Jai',
+                    content: `
+                    <div class="email-section">
+                        <h3>I happen to know that Herbert was a big fan of the Mora Jai puzzle box.</h3>
+                        <p>He would often show off his collection to us here at SYNKA, and find ways to weave them into the mysteries of Mt Holly.</p>
+                        <p>When you made all the corners of your grid the same colour, it triggered something in our code. I guess Herbert snuck it in there.</p>
+                        <p>Anyway, the console put out this message:</p>
+                        <p>00101011 00110010 00100000 01000100 01001111 01001111 01010010 01011010 01000100 01010001 01000110 01001000 <p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('corner-color');
+            }
 
             // Check for patterns (e.g., completed squares in a specific shape)
             const checkPattern = (name, pattern) => {

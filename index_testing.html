@@ -651,6 +651,19 @@
         box-shadow: inset 0 0 15px rgba(0, 192, 122, 0.1);
     }
 
+    /* Subtle puzzle clue styling */
+    .email-content strong {
+        font-weight: bold;
+        text-shadow: 0 0 3px;
+        font-size: 1.05em;
+    }
+
+    .email-content i {
+        font-style: italic;
+        font-size: 1.05em;
+        text-shadow: 0 0 3px;
+    }
+
     .email-header {
         border-bottom: 3px solid #00C07A;
         padding-bottom: 15px;
@@ -801,6 +814,7 @@
             exploredCells: new Set(),
             seed: '',
             usedChallenges: new Set(),
+            draftChoices: [], // Track which option was selected (0, 1, or 2)
             stats: {
                 completedRuns: 0,
                 totalGems: 0,
@@ -1189,24 +1203,83 @@
                         });
                         gameState.emailTriggers.completedTexts.add('mail-room');
                     }
+                    
+                    // Check for chess-related challenges to send puzzle clue
+                    if (cell.challenge.text.toLowerCase().includes('chess') && 
+                        !gameState.emailTriggers.completedTexts.has('chess-clue')) {
+                        emailSystem.sendEmail({
+                            id: 'chess-clue',
+                            subject: "♞ Strategic Thinking",
+                            content: `
+                            <div class="email-section">
+                                <h3>Impressive strategic play!</h3>
+                                <p>I noticed you completed a chess-related challenge. Herbert always said chess was the perfect metaphor for the estate's puzzles.</p>
+                                <p>When you made that move, the server spat out one of Herbert's old notes, titled <em>therightopening</em>:</p>
+                                <p><em>It was never about making the boldest move. It all began as <em>E</em>xpected.</em></p>
+                                <p><em><em>For</em> once, I didn’t hesitate. I knew I had to hide away something precious, shield it from the scrutiny of others.</em></p>
+                                <p><em>But the world <em>mirrored my move</em>, answering silence with suspicion. Secrets don’t stay buried for long...</em></p>
+                                <p><em>I stepped forward. <em>F</em>or five years, I kept the mask in place, shouldering the weight of it all so no one else would have to.</em></p>
+                                <p><em>It was terrifying. I had to give up more than I imagined, and for a time, the estate felt more exposed than ever before.</em></p>
+                                <p><em>But I held to <em>the opening</em>. I couldn’t let the <em>seeds</em> of doubt take root. With time, I believe the estate will endure. The king's sacrifice remembered fondly.</em></p>
+                                <p>- Randolph</p>
+                            </div>`
+                        });
+                        gameState.emailTriggers.completedTexts.add('chess-clue');
+                    }
                 }
             });
 
-            //Check for the same colour in all 4 corners
+            // Check for central challenge completion (BULLSEYE trigger)
+            const centralIndex = 17; // Center of 5x7 grid (row 3, col 2)
+            const centralCell = gameState.grid[centralIndex];
+            
+            // Count non-lobby/non-goal completed cells
+            const completedNonSpecialCells = gameState.grid.filter(cell => 
+                cell.isCompleted && !cell.isLobby && !cell.isGoal
+            ).length;
+            
+            // Only trigger if JUST the central cell is completed (and it's the only non-special completed cell)
+            if (centralCell && centralCell.isCompleted && !centralCell.isLobby && !centralCell.isGoal && 
+                completedNonSpecialCells === 1 && !gameState.emailTriggers.patterns.has('bullseye')) {
+                emailSystem.sendEmail({
+                    id: 'bullseye',
+                    subject: "🎯 BULLSEYE",
+                    content: `
+                    <div class="email-section">
+                        <p>Randolph here. Interesting start, right in the middle of the house!.</p>
+                        <p>The system just flagged something unusual when you started from the center, it triggered some old diagnostic Herbert left behind.</p>
+                        <p>The diagnostic spat out this message:</p>
+                        <p><span style='color:blue'><strong>Days</strong> forgotten slip us by.</span></p>
+                        <p><span style='color:goldenrod'>A dark forgotten flag hangs patiently over the crimson city.</span></p>
+                        <p><span style='color:hotpink'>The past remembers.</span></p>
+                        <p><span style='color:goldenrod'>Can we return to history?</span></p>
+                        <p>I have no idea what that means, but knowing Herbert, it's probably one of his secrets.</p>
+                        <p>The man loved his puzzles.</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('bullseye');
+            }
+
+           
+            //Check for the same colour in all 4 corners (only needs color, not completion)
             const corners = [
                 { row: 0, col: 0 },
                 { row: 0, col: 4 },
-                { row: 4, col: 0 },
-                { row: 4, col: 4 }
+                { row: 6, col: 0 },
+                { row: 6, col: 4 }
             ];
             const cornerColors = corners.map(corner => {
                 const index = corner.row * 5 + corner.col;
-                return gameState.grid[index] ? gameState.grid[index].color : null;
+                const cell = gameState.grid[index];
+                return cell && cell.color ? cell.color : null;
             });
-            const uniqueColors = new Set(cornerColors);
+            // Only proceed if all corners have a color
+            const allHaveColor = cornerColors.every(color => color !== null);
+            const uniqueColors = new Set(cornerColors.filter(color => color !== null));
 
-            //Not working yet, but will be used to trigger an email when all corners are the same colour
-            if (uniqueColors.size === 1 && cornerColors[0] && !gameState.emailTriggers.patterns.has('corner-color')) {
+            // Trigger when all corners have colors and they're all the same
+            if (allHaveColor && uniqueColors.size === 1 && !gameState.emailTriggers.patterns.has('corner-color')) {
                 emailSystem.sendEmail({
                     id: 'corner-color',
                     subject: 'Mora Jai',
@@ -1242,6 +1315,7 @@
                                 <h3>Hidden Pattern Found</h3>
                                 <p>You've discovered a secret pattern in the estate's layout!</p>
                                 <p>Keep exploring to find more patterns.</p>
+                                <p>- Randolph</p>
                             </div>`
                         });
                         gameState.emailTriggers.patterns.add(name);
@@ -1253,17 +1327,115 @@
             //checkPattern('cross', [[2,2], [1,2], [3,2], [2,1], [2,3]]);
             //checkPattern('square', [[1,1], [1,2], [2,1], [2,2]]);
 
-            //Check for beeline to end using pattern (only middle row filled)
+            //Check for pattern straight line between lobby and antechamber, nothing else completed
+            const lobbyIndex = gameState.grid.findIndex(cell => cell.isLobby);
+            const antechamberIndex = gameState.grid.findIndex(cell => cell.isGoal);
+            if (lobbyIndex !== -1 && antechamberIndex !== -1) {
+                const lobbyRow = Math.floor(lobbyIndex / 5);
+                const lobbyCol = lobbyIndex % 5;
+                const antechamberRow = Math.floor(antechamberIndex / 5);
+                const antechamberCol = antechamberIndex % 5;
+                
+                // Check if there's a straight line path and no other rooms are completed
+                const isStraightLine = (lobbyRow === antechamberRow || lobbyCol === antechamberCol);
+                const onlyPathCompleted = gameState.grid.every((cell, index) => {
+                    if (index === lobbyIndex || index === antechamberIndex) return true;
+                    const row = Math.floor(index / 5);
+                    const col = index % 5;
+                    
+                    // If the cell is on the path between lobby and antechamber
+                    const isOnPath = (lobbyRow === antechamberRow && row === lobbyRow && 
+                                    col >= Math.min(lobbyCol, antechamberCol) && 
+                                    col <= Math.max(lobbyCol, antechamberCol)) ||
+                                   (lobbyCol === antechamberCol && col === lobbyCol && 
+                                    row >= Math.min(lobbyRow, antechamberRow) && 
+                                    row <= Math.max(lobbyRow, antechamberRow));
+                    
+                    // Cell should either be uncompleted, or if it's on the path, it should be completed
+                    return isOnPath ? cell.isCompleted : !cell.isCompleted;
+                });
+                
+                if (isStraightLine && onlyPathCompleted && !gameState.emailTriggers.patterns.has('straight-line')) {
+                    emailSystem.sendEmail({
+                        id: 'straight-line',
+                        subject: 'No messing about...',
+                        content: `
+                        <div class="email-section">
+                            <p>Wow, that's impressive! You managed to connect the antechamber and lobby in the shortest way possible!</p>
+                            <p>This is giving really useful data to train the algorithm's efficiency and pathing towards a target.</p>
+                            <p>Keep up the good work!</p>
+                            <p>- Randolph</p>
+                        </div>`
+                    });
+                    gameState.emailTriggers.patterns.add('straight-line');
+                }
+            }
                         
 
-            //Loop pattern round edges email
+            //All edge challenges completed, none of the middle
+            const edgeChallenges = gameState.grid.filter((cell, index) => {
+                return (index < 5 || index >= 20 || index % 5 === 0 || index % 5 === 4) && cell.isCompleted;
+            });
+            const middleChallenges = gameState.grid.filter((cell, index) => {
+                return index >= 5 && index < 20 && index % 5 !== 0 && index % 5 !== 4 && cell.isCompleted;
+            });
+            if (edgeChallenges.length >= 16 && middleChallenges.length === 0 && !gameState.emailTriggers.patterns.has('edge-challenges')) {
+                emailSystem.sendEmail({
+                    id: 'edge-challenges',
+                    subject: 'Walking the perimeter',
+                    content: `
+                    <div class="email-section">
+                        <h3>That was a great!</h3>
+                        <p>Completing all the edge challenges, before anything inside the house, has provided some really useful data. Our algorithm is understanding the boundaries of Mt Holly now! What a breakthrough.</p>
+                        <p>And then this random automated email, apparently from Herbert, came through our system:</strong></p>
+                        <blockquote style="border-left: 3px solid #666; padding-left: 15px; margin: 15px 0; font-style: italic;">
+                        <p><strong>Parlor Puzzle - Draft #3</strong></p>
+                            <p>1. Choice #3 has the reward.</p>
+                            <p>2. Only one of the other choices is truthful.</p>
+                            <p>3. Choice #3 has the reward.</p>
+                        <p>- H</p>
+                        </blockquote>
+                        <p>I never got to see the parlor in my time at Mt. Holly so I've no idea what to do with this. I'm not sure the software is ready for the answer yet anyway.</p>
+                        <p> In other news, now that the algorithm has made sense of the boundaries of the house, we just need to teach it what's inbetween. We are really <strong>centering</strong> in on the perfect solve now, I can feel it!</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('edge-challenges');
+            }
             
-            //Draft mode path completed
+            //Draft mode 20x drafts made
+            if (gameState.mode.startsWith('draft') && gameState.usedChallenges.size >= 15 && !gameState.emailTriggers.patterns.has('fifteen-drafts')) {
+                emailSystem.sendEmail({
+                    id: 'fifteen-drafts',
+                    subject: '📝 Drafting Mastery',
+                    content: `
+                    <div class="email-section">
+                        <h3>Wow you're a drafting pro!</h3>
+                        <p>You've successfully drafted fifteen challenges in one map. Impressive!</p>
+                        <p>This is giving us some great data for understanding drafting strategy in Mt Holly. Keep up the good work!</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('fifteen-drafts');
+            }
+            
             
 
-            //Campaign mode 10 days spent
-            
-
+            //Campaign mode 10+ days entered into days field
+            if (gameState.mode.startsWith('weekly')  && gameState.days > 10 && !gameState.emailTriggers.patterns.has('ten-days')) {
+                emailSystem.sendEmail({
+                    id: 'ten-days',
+                    subject: 'Serious commitment',
+                    content: `
+                    <div class="email-section">
+                        <p>You've spent over ten days working on the same campaign. You don't give up easily.</p>
+                        <p>Remember, each day beyond the first incurs a score penalty in campaign mode.</p>
+                        <p>Nonetheless, getting all this data on one run is invaluable for our analysis. I know Herbert had mentioned removing the penalty, maybe he was onto something</p>
+                        <p>- Randolph</p>
+                    </div>`
+                });
+                gameState.emailTriggers.patterns.add('ten-days');
+            }
 
             //5 gems at once
             if (gameState.resources.gems >= 5 && !gameState.emailTriggers.patterns.has('five-gems')) {
@@ -1300,7 +1472,48 @@
                 gameState.emailTriggers.patterns.add('five-dice');
             }
             
-            //Custom seed used (not the daily seed)
+            //5 keys at once
+        if (gameState.resources.keys >= 5 && !gameState.emailTriggers.patterns.has('five-keys')) {
+            emailSystem.sendEmail({
+                id: 'five-keys',
+                subject: '🔑 Key Master',
+                content: `
+                <div class="email-section">
+                    <p>Five keys at once! That's quite a collection you've got there.</p>
+                    <p>The estate seems to be quite generous with its keys today. In my experience, that usually means there's something important behind one of those locked doors.</p>
+                    <p>Herbert always said the more keys you had, the more secrets you could unlock. I suppose that's rather obvious in retrospect.</p>
+                    <p>Use them wisely!</p>
+                    <p>- Randolph</p>
+                </div>`
+            });
+            gameState.emailTriggers.patterns.add('five-keys');
+        }
+            
+            
+            // Check for draft mode third-choice-only pattern
+            if (gameState.mode.startsWith('draft') && gameState.isComplete && !gameState.emailTriggers.patterns.has('green-house')) {
+                // Check if player ONLY used the third option (index 2) in ALL draft choices
+                const usedOnlyThirdOption = gameState.draftChoices.length > 0 && 
+                                          gameState.draftChoices.every(choice => choice === 2);
+                
+                if (usedOnlyThirdOption) {
+                    emailSystem.sendEmail({
+                        id: 'green-house',
+                        subject: '🏠 A House of Leaves',
+                        content: `
+                        <div class="email-section">
+                            <h3>Fascinating results from your draft!</h3>
+                            <p>Your drafting strategy of consistently choosing the third option has given us invaluable data on choice patterns.</p>
+                            <p>The training data culminated in a record breaking 330-second processing time, only to have filled the entire house with garden rooms. What a shame, that's not what we wanted.</p>
+                            <p>I'm calling it "The House of Leaves" - seems fitting given all the green!</p>
+                            <p>The 330 seconds is so much quicker than any other test we ran, I might have to ask the new lab tech, Will N, for his insights.</p>
+                            <p>- Randolph</p>
+                        </div>`,
+                        secret: true
+                    });
+                    gameState.emailTriggers.patterns.add('green-house');
+                }
+            }
            
 
     }
@@ -1339,10 +1552,11 @@
             { id: 'spot_drawing', text: "Find a drawing of a {drawings}", ranks: [], columns: [], color: 'orange', difficulty: 'easy', type: 'none' },
             { id: 'check_time', text: "Wait until {1:4}pm", ranks: [5,6,7], columns: [1,5], color: 'red', difficulty: 'easy', type: 'none' },
             { id: 'windows', text: "Look out windows in {3:5} different rooms", ranks: [], columns: [1,5], color: 'orange', difficulty: 'easy', type: 'none' },
-            { id: 'toss_coin', text: "Toss a coin in the fountain", ranks: [1,2,3,4,5], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
+            { id: 'toss_coin', text: "Toss a coin in the fountain", ranks: [3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'easy', type: 'none' },
             { id: 'fill_row_1', text: "Fill row  {1:3} of the estate with rooms all the way across", ranks: [1,2,3], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'fill_row_2', text: "Fill row  {4:7} of the estate with rooms all the way across", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
             { id: 'fill_column', text: "Fill column {1:5} of the estate with rooms all the way up", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'none' },
+            { id: 'draft_chess_pieces_2', text: "Draft rooms with 3 unique chess pieces", ranks: [2,3,4,5,6,7], columns: [1], color: 'orange', difficulty: 'easy', type: 'none' },
                                              
             // Medium challenges Daily
             { id: 'parlor_puzzle_1', text: "Complete parlor puzzle", ranks: [1,2,3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'daily' },
@@ -1352,14 +1566,14 @@
             { id: 'pet_dog_1', text: "Pet a dog {1:6} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'craft_item_1', text: "Craft an item", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
             { id: 'observe_constellation_1', text: "Observe a constellation", ranks: [3,4,5], columns: [], color: 'blue', difficulty: 'medium', type: 'none' },
-            { id: 'draft_both_common_1', text: "Draft both {common_room} and {common_room} at the same time", ranks: [6,7], columns: [], color: "", difficulty: "medium", type: "none" },
+            { id: 'draft_both_common_1', text: "Draft both {common_room} and {common_room} at the same time", ranks: [4,5,6,7], columns: [], color: "", difficulty: "medium", type: "none" },
             { id: 'special_key_1', text: "Use a special (non-standard) key", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'lab_experiment_1', text: "Trigger a laboratory experiment", ranks: [3,4,5,6,7], columns: [], color: 'blue', difficulty: 'hard', type: 'none' },
             { id: 'read_books_1', text: "Read {2:4} different books", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'find_photos_1', text: "Find {2:4} different photos", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'find_memos_1', text: "Find {2:4} different memos", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'end_in_roomtype_1', text: "End the day in a {roomtype} room", ranks: [3,4,5,6,7], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
-            { id: 'reroll_choices_1', text: "Reroll room choices {2:4} times", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'reroll_choices_1', text: "Reroll room choices {2:4} times", ranks: [2,3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'ivory_dice_1', text: "Have {2:4} ivory dice at once", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'daily' },
             { id: 'over_60_steps_1', text: "Have over 60 steps", ranks: [3,4,5,6,7], columns: [], color: 'purple', difficulty: 'medium', type: 'daily' },
             { id: 'end_with_steps_1', text: "End the day with {20:40}+ steps", ranks: [3,4,5,6,7], columns: [], color: 'purple', difficulty: 'medium', type: 'daily' },
@@ -1371,7 +1585,7 @@
             { id: 'find_item_3', text: "Find a {item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'find_item_4', text: "Find a {item}", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'pull_levers_1', text: "Pull {1:2} levers", ranks: [3,4,5,6,7], columns: [], color: '', difficulty: 'medium', type: 'none' },
-            { id: 'buy_multi_shop', text: "Buy {2:5} things from shop rooms", ranks: [3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
+            { id: 'buy_multi_shop', text: "Buy {2:5} things from shop rooms", ranks: [1,2,3,4,5,6,7], columns: [], color: 'yellow', difficulty: 'medium', type: 'none' },
             { id: 'draft_double_purple', text: "Draft 2 purple rooms connected to each other", ranks: [], columns: [], color: 'purple', difficulty: 'medium', type: 'none' },
             { id: 'draft_double_orange', text: "Draft 2 hallway rooms connected to each other", ranks: [], columns: [], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'gem_flower', text: "Collect a gem from a flower", ranks: [5,6,7], columns: [1,5], color: 'green', difficulty: 'medium', type: 'none' },
@@ -1387,9 +1601,10 @@
             { id: 'food_types', text: "Eat {2:3} different types of food.", ranks: [1,2,3,4,5,6], columns: [], color: '', difficulty: 'medium', type: 'none' },
             { id: 'donut', text: "Draft a donut. (An empty square surrounded by rooms)", ranks: [1,2,3,4,5], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
             { id: 'reroll_multi', text: "Reroll the same draw {2:3} time", ranks: [3,4,5], columns: [1,5], color: '', difficulty: 'medium', type: 'none' },
-            { id: 'car_unlock', text: "Unlock the trunk of a car.", ranks: [], columns: [1,2], color: 'yellow', difficulty: 'medium', type: 'none' },
+            { id: 'car_unlock', text: "Unlock the trunk of a car.", ranks: [], columns: [1,2], color: 'orange', difficulty: 'medium', type: 'none' },
             { id: 'red_letter_1', text: "Read {1:2} red letters", ranks: [], columns: [], color: 'red', difficulty: 'medium', type: 'none' },
             { id: 'security_doors', text: "Bypass {1:2} security doors", ranks: [], columns: [], color: '', difficulty: 'medium', type: 'none' },
+            { id: 'chessboard', text: "Find a chessboard.", ranks: [3,4,5,6,7], columns: [1], color: 'orange', difficulty: 'easy', type: 'none' },
             
             // Hard challenges Daily
             { id: 'enter_antechamber_1', text: "Enter the antechamber", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'none'},
@@ -1420,7 +1635,7 @@
             //Easy challenges multi
             { id: 'unlock_gem_mines_1', text: "Unlock gem mines", ranks: [3,4,5,6], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'freeze_accounts_1', text: "Freeze your accounts", ranks: [3,4,5,6], columns: [], color: 'blue', difficulty: 'easy', type: 'multi' },
-            { id: 'draft_chess_pieces_1', text: "Draft 1 of every chess piece", ranks: [4,5,6,7], columns: [1,5], color: '', difficulty: 'easy', type: 'multi' },
+            { id: 'draft_chess_pieces_1', text: "Draft 1 of every chess piece", ranks: [4,5,6,7], columns: [1,5], color: 'orange', difficulty: 'easy', type: 'multi' },
             { id: 'great_hall_doors_1', text: "Open all the doors in the great hall", ranks: [4,5,6,7], columns: [], color: 'orange', difficulty: 'easy', type: 'multi' },
             { id: 'adjust_rarity_1', text: "Adjust a room's rarity", ranks: [4,5,6,7], columns: [], color: '', difficulty: 'easy', type: 'multi' },
             { id: 'over_100_steps_1', text: "Have over 100 steps", ranks: [4,5,6,7], columns: [], color: 'purple', difficulty: 'easy', type: 'multi' },
@@ -1467,7 +1682,7 @@
             { id: 'fill_house_1', text: "Fill every square in the house", ranks: [5,6,7], columns: [], color: '', difficulty: 'hard', type: 'multi' },
             { id: 'sanctum_key_1', text: "Find a sanctum key", ranks: [6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
             { id: 'estate_type_1', text: "End a day with a {estateType}", ranks: [5,6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' },
-            { id: 'chess', text: "Gain a chess power", ranks: [6,7], columns: [1,5], color: '', difficulty: 'hard', type: 'multi' }
+            { id: 'chess', text: "Gain a chess power", ranks: [6,7], columns: [1,5], color: 'orange', difficulty: 'hard', type: 'multi' }
             
         ];
 
@@ -2014,28 +2229,13 @@
             const seed = gameState.seed + index;
             const rng = new SeededRandom(seed);
             
-            const options = [];
-            const attempts = [];
-            
-            // Generate more attempts to ensure we get valid options
-            for (let i = 0; i < 10; i++) {
-                const challenge = generateChallengeOption(7 - cell.row, cell.col + 1, cell.color, rng);
-                attempts.push(challenge);
-            }
-
-            // Remove duplicates and take first 2-3 regular options
             const uniqueOptions = [];
-            const seenIds = new Set();
             
-            for (const attempt of attempts) {
-                if (!seenIds.has(attempt.id) && uniqueOptions.length < 2) {
-                    seenIds.add(attempt.id);
-                    uniqueOptions.push(attempt);
-                }
-            }
+            // Check if this is a corner square in a 5x7 grid
+            const isCornerSquare = (cell.row === 0 || cell.row === 6) && (cell.col === 0 || cell.col === 4);
             
-            // Add random color option with 30% chance
-            if (rng.next() < 0.3) {
+            if (isCornerSquare) {
+                // For corner squares, show three random color options
                 const availableColors = colors.filter(color => {
                     // Check if there are valid challenges for this color
                     const colorChallenges = challenges.filter(c => {
@@ -2049,21 +2249,102 @@
                     });
                     return colorChallenges.length > 0;
                 });
-                
+
                 if (availableColors.length > 0) {
-                    const randomColor = availableColors[rng.nextInt(0, availableColors.length - 1)];
+                    // Create a new RNG instance based on the seed and corner position
+                    // This ensures the same corner always gets the same guaranteed color
+                    const cornerSeed = gameState.seed + (cell.row * 7 + cell.col);
+                    const cornerRng = new SeededRandom(cornerSeed);
+                    
+                    // Get a guaranteed color for this corner based on the seed
+                    const guaranteedColorIndex = cornerRng.nextInt(0, availableColors.length - 1);
+                    const guaranteedColor = availableColors[guaranteedColorIndex];
+                    
+                    // Remove the guaranteed color from available colors for remaining choices
+                    const remainingColors = availableColors.filter(c => c !== guaranteedColor);
+                    
+                    // Add the guaranteed color first
                     uniqueOptions.push({
                         id: 'random_color',
-                        text: `Random ${randomColor} challenge`,
+                        text: `Random ${guaranteedColor} challenge`,
                         isRandomColor: true,
-                        targetColor: randomColor
+                        targetColor: guaranteedColor
                     });
+                    
+                    // Add two more unique random colors
+                    const secondColor = remainingColors[rng.nextInt(0, remainingColors.length - 1)];
+                    const thirdColorOptions = remainingColors.filter(c => c !== secondColor);
+                    
+                    if (secondColor) {
+                        uniqueOptions.push({
+                            id: 'random_color',
+                            text: `Random ${secondColor} challenge`,
+                            isRandomColor: true,
+                            targetColor: secondColor
+                        });
+                    }
+                    
+                    if (thirdColorOptions.length > 0) {
+                        const thirdColor = thirdColorOptions[rng.nextInt(0, thirdColorOptions.length - 1)];
+                        uniqueOptions.push({
+                            id: 'random_color',
+                            text: `Random ${thirdColor} challenge`,
+                            isRandomColor: true,
+                            targetColor: thirdColor
+                        });
+                    }
                 }
-            }
-            
-            // Fill with duplicates if needed to reach 3 options
-            while (uniqueOptions.length < 3 && attempts.length > 0) {
-                uniqueOptions.push(attempts[uniqueOptions.length % attempts.length]);
+            } else {
+                // Original logic for non-corner squares
+                const attempts = [];
+                
+                // Generate more attempts to ensure we get valid options
+                for (let i = 0; i < 10; i++) {
+                    const challenge = generateChallengeOption(7 - cell.row, cell.col + 1, cell.color, rng);
+                    attempts.push(challenge);
+                }
+
+                // Remove duplicates and take first 2-3 regular options
+                const seenIds = new Set();
+                
+                for (const attempt of attempts) {
+                    if (!seenIds.has(attempt.id) && uniqueOptions.length < 2) {
+                        seenIds.add(attempt.id);
+                        uniqueOptions.push(attempt);
+                    }
+                }
+                
+                // Add random color option with 30% chance
+                if (rng.next() < 0.3) {
+                    const availableColors = colors.filter(color => {
+                        // Check if there are valid challenges for this color
+                        const colorChallenges = challenges.filter(c => {
+                            const rankValid = c.ranks.length === 0 || c.ranks.includes(7 - cell.row);
+                            const columnValid = c.columns.length === 0 || c.columns.includes(cell.col + 1);
+                            const colorValid = !c.color || c.color === color;
+                            const typeValid = gameState.mode.includes('weekly') ? 
+                                (c.type === 'multi' || c.type === 'none') : 
+                                (c.type === 'daily' || c.type === 'none');
+                            return rankValid && columnValid && colorValid && typeValid;
+                        });
+                        return colorChallenges.length > 0;
+                    });
+                    
+                    if (availableColors.length > 0) {
+                        const randomColor = availableColors[rng.nextInt(0, availableColors.length - 1)];
+                        uniqueOptions.push({
+                            id: 'random_color',
+                            text: `Random ${randomColor} challenge`,
+                            isRandomColor: true,
+                            targetColor: randomColor
+                        });
+                    }
+                }
+                
+                // Fill with duplicates if needed to reach 3 options
+                while (uniqueOptions.length < 3 && attempts.length > 0) {
+                    uniqueOptions.push(attempts[uniqueOptions.length % attempts.length]);
+                }
             }
             
             const modal = document.getElementById('draft-modal');
@@ -2078,7 +2359,7 @@
                 }
                 optionElement.textContent = option.text;
                 optionElement.addEventListener('click', () => {
-                    selectDraftOption(index, option);
+                    selectDraftOption(index, option, i); // Pass the option index
                     modal.style.display = 'none';
                 });
                 optionsContainer.appendChild(optionElement);
@@ -2088,8 +2369,11 @@
         }
 
         // Select draft option
-        function selectDraftOption(index, challengeOption) {
+        function selectDraftOption(index, challengeOption, optionIndex) {
             const cell = gameState.grid[index];
+            
+            // Track the choice made (0, 1, or 2)
+            gameState.draftChoices.push(optionIndex);
             
             if (challengeOption.isRandomColor) {
                 cell.color = challengeOption.targetColor;
@@ -2216,6 +2500,7 @@
                                 <p>Randolph Moore here from SYNKA! I wanted to personally congratulate you on completing your first successful navigation of Mt Holly.</p>
                                 <p>Your path data has been added to our algorithmic analysis program. Every unique route you discover helps us better understand the estate's shifting nature.</p>
                                 <p>I've been working here for over a decade alongside Herbert, and I must say, it's refreshing to see new approaches to exploration.</p>
+                                <p> We've been stuck for a while trying to get our algorithm to understand the boundaries of the estate, hopefully this influx of new data will help.</p>
                                 <p>Keep up the excellent work!</p>
                                 <p>Best regards,<br>Randolph Moore<br>Head Lab Technician, SYNKA</p>
                                 <p></p>
@@ -2431,6 +2716,7 @@
             gameState.isComplete = false;
             gameState.exploredCells = new Set();
             gameState.usedChallenges = new Set();
+            gameState.draftChoices = [];
         }
 
         /**
@@ -2638,6 +2924,32 @@
 
             // Days counter for multi modes
             document.getElementById('days-counter').addEventListener('input', updateScoreDisplay);
+            
+            // Check for special days values (puzzle triggers)
+            document.getElementById('days-counter').addEventListener('input', () => {
+                const currentDays = parseInt(document.getElementById('days-counter').value);
+                if (currentDays === -20 && !gameState.emailTriggers.patterns.has('past_puzzle') && gameState.mode.startsWith('weekly')) {
+                    emailSystem.sendEmail({
+                        id: 'past_puzzle',
+                        subject: "Into the Past",
+                        content: `
+                        <div class="email-section">
+                            <h3>Nice job.</h3>
+                            <p>You've solved the poem puzzle I put in here! That one was tricky. I must admit, I got a bit carried away with the theme of the past.</p>
+                            <p>I assume this means Randolph hasn't patched negative days increasing your score... Anyway! If you're reading this, I'm sure you are a puzzle aficionado like myself.</p>
+                            <p>Allow me to share one more with you:</p>
+                            <p>Ha<strong>bit</strong>ual<strong>ly</strong>I seem to be drawn to the past again.</p>
+                            <p>I've had <strong>numerous</strong> thoughts about my dad, Tomas Sinclair, lately. <strong>For one, for</strong> example, I've been thinking about the <i>letters</i> we would send each other whilst I was away travelling.</p>
+                            <p>In his final days, he sent me a message, the <i>last letter</i> of our correspondence. I was young and had not yet explored the estate alone.</p>
+                            <p>He introduced me to the wonders of Mt. Holly, gave me a sense of adventure, and passed on his love for the house..</p>
+                            <p>Will <i>you be</i> as inspired by the messages I have left for you, dear stranger? Will my words be as <i>eye</i> opening for you as my father's wisdom was for me.</p>
+                            <p>- Herbert</p>
+                        </div>`,
+                        secret: true
+                    });
+                    gameState.emailTriggers.patterns.add('past_puzzle');
+                }
+            });
 
             // Share button
             document.getElementById('share-btn').addEventListener('click', copyResult);
@@ -2658,6 +2970,43 @@
             document.getElementById('apply-seed-btn').addEventListener('click', () => {
                 const manualSeed = document.getElementById('manual-seed').value.trim();
                 if (manualSeed) {
+                    const dailySeed = getSeed();
+                    
+                    // Check for chess puzzle seed (King's Gambit)
+                    if (manualSeed.toLowerCase() === 'kingsgambit' && !gameState.emailTriggers.patterns.has('chess-puzzle')) {
+                        emailSystem.sendEmail({
+                            id: 'chess-puzzle',
+                            subject: '♕ The King\'s Gambit',
+                            content: `
+                            <div class="email-section">
+                                <h3>A bold opening move!</h3>
+                                <p>You've entered "King's Gambit" - a classic chess opening. Herbert would be proud!</p>
+                                <p>The analysis of your gameplay patterns suggests you're thinking several moves ahead, just like in chess.</p>
+                                <p>Speaking of moves, our sensors picked up some interesting coordinates from the estate's geological survey: <strong>39°02′05″N 85°50′04″W</strong></p>
+                                <p>I have no idea what those refer to - probably some technical reference from Herbert's notes. Maybe it's important, maybe it's just old surveying data from our research.</p>
+                                <p>The estate does love its puzzles within puzzles...</p>
+                                <p>- Randolph</p>
+                            </div>`,
+                            secret: true
+                        });
+                        gameState.emailTriggers.patterns.add('chess-puzzle');
+                    }
+                    
+                    if (manualSeed !== dailySeed && !gameState.emailTriggers.patterns.has('custom-seed')) {
+                        emailSystem.sendEmail({
+                            id: 'custom-seed',
+                            subject: '🔧 Custom Seed Applied',
+                            content: `
+                            <div class="email-section">
+                                <h3>Custom Seed Entered</h3>
+                                <p>You've entered a custom seed: <strong>${manualSeed}</strong>.</p>
+                                <p>This will allow you to explore different configurations and strategies.</p>
+                                <p>Keep experimenting with different seeds to discover new challenges!</p>
+                                <p>- Randolph</p>
+                            </div>`
+                        });
+                        gameState.emailTriggers.patterns.add('custom-seed');
+                    }
                     randomSeed = manualSeed;
                     initGame();
                 }
